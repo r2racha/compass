@@ -127,6 +127,24 @@ h1 em, h2 em { color: #698567; font-style: normal; }
 .quiet-button:hover { color: #4f6951 !important; background: #edf2e9 !important; }
 .expanded-ready { min-height: 760px; }
 .expanded-ready .ready-note { max-height: 655px; overflow: auto; }
+.catalog-trigger { width: 100%; display: grid; grid-template-columns: 20px 1fr auto; align-items: center; gap: 7px; margin: 17px 0 0; padding: 10px 11px; border: 1px dashed #9fb59a; border-radius: 10px 14px 11px 7px; background: #f1f7ed; color: #5e7e5e; font-size: 11px; font-weight: 700; text-align: left; transition: transform 160ms cubic-bezier(.23,1,.32,1), background 160ms ease; }
+.catalog-trigger:hover { background: #e6f0e2; transform: translate(-1px, -1px); }
+.catalog-trigger b { padding: 3px 6px; border-radius: 100px; background: #71906f; color: #fffdf7; font-size: 9px; }
+.ocsc-catalog-dialog { width: min(960px, calc(100% - 26px)); max-width: 960px; max-height: min(82vh, 760px); gap: 12px; overflow: hidden; padding: 25px 24px 20px; border: 1px solid #d8c7ab; border-radius: 17px 28px 16px 24px; background: #fffdf7; color: #55483c; box-shadow: 12px 14px 0 rgba(217,197,164,.25), 0 25px 80px rgba(54,41,28,.21); }
+.ocsc-catalog-dialog [data-slot="dialog-header"] { gap: 5px; padding-right: 35px; text-align: left; }
+.ocsc-catalog-dialog [data-slot="dialog-title"] { color: #4a3e34; font-family: "Mali", cursive; font-size: 24px; font-weight: 700; letter-spacing: -.05em; }
+.ocsc-catalog-dialog [data-slot="dialog-description"] { color: #7b6c60; font-family: "Mali", cursive; font-size: 11px; line-height: 1.65; }
+.catalog-source { margin: 0; color: #628162; font-size: 9px; font-weight: 700; letter-spacing: .06em; }
+.catalog-controls { display: grid; gap: 10px; }
+.catalog-controls input { width: 100%; height: 40px; padding: 0 12px; border: 1px solid #d9cbb5; border-radius: 11px 15px 10px 8px; background: #f8f3e9; color: #504338; font-family: "Mali", cursive; font-size: 12px; outline: none; }
+.catalog-controls input:focus { border-color: #7d9a78; box-shadow: 0 0 0 3px rgba(125,154,120,.16); }
+.catalog-filter-list { display: flex; gap: 6px; overflow-x: auto; padding: 1px 0 4px; scrollbar-width: thin; }
+.catalog-filter-list button { flex: none; padding: 6px 9px; border: 1px solid #ddd0bb; border-radius: 100px; background: #fffaf1; color: #887869; font-size: 10px; font-weight: 700; transition: background 160ms ease, color 160ms ease; }
+.catalog-filter-list button.is-active { border-color: #71906f; background: #71906f; color: #fffdf7; }
+.catalog-result-summary { color: #9a8877; font-size: 10px; font-weight: 700; }
+.catalog-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; max-height: 310px; overflow-y: auto; padding: 2px 7px 2px 2px; }
+.catalog-list span { min-width: 0; padding: 8px 9px; border: 1px solid #e7ddd0; border-radius: 8px 12px 9px 6px; background: #fffefa; color: #625548; font-size: 11px; font-weight: 700; line-height: 1.4; }
+.catalog-reference { display: inline-flex; width: fit-content; color: #607e60; font-size: 10px; font-weight: 700; line-height: 1.5; text-decoration: underline; text-decoration-style: dashed; text-underline-offset: 3px; }
 .subject-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; margin: 20px 0 18px; }
 .subject-option { display: flex; align-items: flex-start; gap: 5px; min-height: 44px; padding: 8px 9px; border: 1px solid #dfd5c6; border-radius: 11px 13px 11px 7px; background: rgba(255,255,255,.66); color: #77685c; font-size: 10px; font-weight: 700; line-height: 1.4; text-align: left; transition: transform 160ms cubic-bezier(.23,1,.32,1), border-color 160ms ease, background 160ms ease; }
 .subject-option:hover { border-color: #a9bc9f; background: #f4f8f0; transform: translate(-1px,-1px); }
@@ -299,6 +317,10 @@ h1 em, h2 em { color: #698567; font-style: normal; }
   .expanded-ready { padding-bottom: 42px; }
   .expanded-ready .ready-note { max-height: none; overflow: visible; }
   .subject-grid { grid-template-columns: 1fr; max-height: 246px; overflow-y: auto; padding-right: 3px; }
+  .catalog-trigger { margin-top: 14px; }
+  .ocsc-catalog-dialog { width: calc(100% - 20px); max-height: 84vh; padding: 23px 15px 15px; }
+  .ocsc-catalog-dialog [data-slot="dialog-title"] { font-size: 21px; }
+  .catalog-list { grid-template-columns: 1fr; max-height: 320px; }
   .subject-option { min-height: 39px; font-size: 9px; }
   .ready-note h2 { font-size: 31px; }
   .ready-note > p { font-size: 14px; line-height: 1.82; }

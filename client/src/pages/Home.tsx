@@ -3,9 +3,11 @@
  * ivory paper, sage trail, asymmetric composition, gentle self-discovery.
  */
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowRight,
+  BookOpen,
   Check,
   ChevronLeft,
   Compass,
@@ -31,6 +33,7 @@ import {
   type SubjectGroup,
   zeroScores,
 } from "@/data/quiz";
+import { catalogGroups, scopedAcademicRoles, type CatalogGroupId } from "@/data/ocscCatalog";
 
 const IS_GITHUB_PAGES = import.meta.env.VITE_GITHUB_PAGES === "true";
 const pageAsset = (fileName: string, manusPath: string) => IS_GITHUB_PAGES ? `${import.meta.env.BASE_URL}images/${fileName}` : manusPath;
@@ -71,6 +74,8 @@ export default function Home() {
   const [subject, setSubject] = useState<SubjectGroup>("unsure");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [catalogQuery, setCatalogQuery] = useState("");
+  const [catalogGroup, setCatalogGroup] = useState<CatalogGroupId | "all">("all");
 
   const currentQuestion = questions[questionIndex];
   const rankedPositions = useMemo(() => rankPositions(scores, subject), [scores, subject]);
@@ -81,6 +86,14 @@ export default function Home() {
     () => (Object.entries(scores) as Array<[keyof ScoreVector, number]>).sort((left, right) => right[1] - left[1]).slice(0, 3),
     [scores],
   );
+  const catalogRoles = useMemo(() => {
+    const normalizedQuery = catalogQuery.trim().toLocaleLowerCase("th-TH");
+    return scopedAcademicRoles.filter((role) => {
+      const matchesGroup = catalogGroup === "all" || role.groupId === catalogGroup;
+      const matchesQuery = !normalizedQuery || role.title.toLocaleLowerCase("th-TH").includes(normalizedQuery);
+      return matchesGroup && matchesQuery;
+    });
+  }, [catalogGroup, catalogQuery]);
   const progress = stage === "result" ? 100 : (questionIndex / questions.length) * 100;
 
   const startQuiz = () => {
@@ -189,6 +202,30 @@ export default function Home() {
                 <div className="eyebrow"><MapPin size={15} /> ก่อนออกเดิน</div>
                 <h2>เลือกกลุ่มสาขาวิชา<br />ถ้าอยากให้ช่วยเรียงผล</h2>
                 <p>ข้ามได้เลยนะครับ คำตอบนี้ช่วยเพียงบอกความเกี่ยวข้องเบื้องต้นของตำแหน่ง ไม่ใช้ตัดสิทธิ์ และต้องตรวจคุณสมบัติจากประกาศรับสมัครจริงเสมอ</p>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <button className="catalog-trigger"><BookOpen size={17} /><span>ดูสารบัญสายงาน ก.พ.</span><b>{scopedAcademicRoles.length} สายงาน</b></button>
+                  </DialogTrigger>
+                  <DialogContent className="ocsc-catalog-dialog">
+                    <DialogHeader>
+                      <p className="catalog-source">สำนักงาน ก.พ. · มาตรฐานกำหนดตำแหน่งประเภทวิชาการ</p>
+                      <DialogTitle>สารบัญสายงานที่ใช้สำรวจต่อได้</DialogTitle>
+                      <DialogDescription>แสดง {scopedAcademicRoles.length} สายงานภายในขอบเขตเว็บไซต์ โดยตัดสายการศึกษาและงานส่งเสริมการปกครองท้องถิ่นตามขอบเขตที่เลือกไว้ ผลแบบทดสอบยังแนะนำเฉพาะตำแหน่งที่มีโมเดลลักษณะงานครบถ้วน</DialogDescription>
+                    </DialogHeader>
+                    <div className="catalog-controls">
+                      <input value={catalogQuery} onChange={(event) => setCatalogQuery(event.target.value)} placeholder="ค้นหาชื่อสายงาน เช่น การเงิน, เกษตร, วิศวกรรม" aria-label="ค้นหาสายงาน" />
+                      <div className="catalog-filter-list" role="group" aria-label="กรองกลุ่มสายงาน">
+                        <button className={catalogGroup === "all" ? "is-active" : ""} onClick={() => setCatalogGroup("all")}>ทั้งหมด</button>
+                        {catalogGroups.map((group) => <button key={group.id} className={catalogGroup === group.id ? "is-active" : ""} onClick={() => setCatalogGroup(group.id)}>{group.shortLabel}</button>)}
+                      </div>
+                    </div>
+                    <div className="catalog-result-summary">พบ {catalogRoles.length} สายงาน</div>
+                    <div className="catalog-list" aria-live="polite">
+                      {catalogRoles.map((role) => <span key={role.code}>{role.title}</span>)}
+                    </div>
+                    <a className="catalog-reference" href="https://knowledge.ocsc.go.th/th/standard-position/all/" target="_blank" rel="noreferrer">ตรวจสอบมาตรฐานกำหนดตำแหน่งและคุณสมบัติจากสำนักงาน ก.พ. ↗</a>
+                  </DialogContent>
+                </Dialog>
                 <div className="subject-grid" role="group" aria-label="กลุ่มสาขาวิชา">
                   {subjectGroups.map((group) => (
                     <button key={group.id} className={`subject-option ${subject === group.id ? "is-selected" : ""}`} onClick={() => setSubject(group.id)}>
