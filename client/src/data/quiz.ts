@@ -20,6 +20,8 @@ export type SubjectGroup =
   | "digital"
   | "data"
   | "engineering"
+  | "architecture"
+  | "science"
   | "agriEnvironment"
   | "health"
   | "communication"
@@ -51,6 +53,7 @@ export type Position = {
   summary: string;
   difference: string;
   subjects: SubjectGroup[];
+  professionalRequirement?: string;
   weights: ScoreVector;
   compareWith: string;
 };
@@ -81,11 +84,13 @@ export const subjectGroups: Array<{ id: SubjectGroup; label: string; shortLabel:
   { id: "finance", label: "บัญชี / การเงิน / เศรษฐศาสตร์", shortLabel: "การเงิน บัญชี และเศรษฐศาสตร์" },
   { id: "digital", label: "คอมพิวเตอร์ / เทคโนโลยีสารสนเทศ / ข้อมูล", shortLabel: "คอมพิวเตอร์และดิจิทัล" },
   { id: "data", label: "สถิติ / คณิตศาสตร์ / วิทยาศาสตร์ข้อมูล", shortLabel: "สถิติและข้อมูล" },
-  { id: "engineering", label: "วิศวกรรม / สถาปัตยกรรม", shortLabel: "วิศวกรรมและสถาปัตยกรรม" },
+  { id: "engineering", label: "วิศวกรรมศาสตร์", shortLabel: "วิศวกรรมศาสตร์" },
+  { id: "architecture", label: "สถาปัตยกรรม / ผังเมือง / ภูมิสถาปัตย์", shortLabel: "สถาปัตยกรรมและผังเมือง" },
+  { id: "science", label: "วิทยาศาสตร์", shortLabel: "วิทยาศาสตร์" },
   { id: "agriEnvironment", label: "เกษตร / สิ่งแวดล้อม / ทรัพยากรธรรมชาติ", shortLabel: "เกษตรและสิ่งแวดล้อม" },
   { id: "health", label: "สุขภาพและสาธารณสุข", shortLabel: "สุขภาพและสาธารณสุข" },
   { id: "communication", label: "นิเทศศาสตร์ / อักษรศาสตร์ / มนุษยศาสตร์", shortLabel: "การสื่อสารและมนุษยศาสตร์" },
-  { id: "unsure", label: "ยังไม่แน่ใจ หรือไม่ต้องการระบุ", shortLabel: "ไม่ได้ระบุสาขา" },
+  { id: "unsure", label: "ยังไม่แน่ใจ — ดูผลสำรวจโดยไม่กรองวุฒิ", shortLabel: "ยังไม่กรองวุฒิ" },
 ];
 
 export const dimensionLabels: Record<Dimension, string> = {
@@ -308,20 +313,26 @@ export const positions: Position[] = [
   { id: "tax", officialCode: "3-2-015", title: "นักวิชาการภาษีปฏิบัติการ", family: "สิทธิ ระเบียบ และบริการประชาชน", summary: "สนับสนุนงานภาษีและการปฏิบัติตามหลักเกณฑ์", difference: "ใกล้งานสรรพากร แต่ใช้ได้กับภารกิจภาษีและการวิเคราะห์กติกาที่กว้างกว่า", subjects: ["finance", "law"], weights: score(["regulation", 4], ["quantitative", 4], ["strategy", 2]), compareWith: "revenue" },
   { id: "labour", officialCode: "3-8-017", title: "นักวิชาการแรงงานปฏิบัติการ", family: "สิทธิ ระเบียบ และบริการประชาชน", summary: "ให้ข้อมูลสิทธิแรงงาน ประสานการคุ้มครอง และวิเคราะห์ประเด็นแรงงาน", difference: "เชื่อมงานสิทธิและระเบียบกับการสื่อสารและบริการต่อผู้คน", subjects: ["publicSocial", "law"], weights: score(["publicCommunication", 4], ["protection", 4], ["regulation", 3]), compareWith: "social-development" },
   { id: "land", officialCode: "3-8-014", title: "นักวิชาการที่ดินปฏิบัติการ", family: "สิทธิ ระเบียบ และบริการประชาชน", summary: "พิจารณาเอกสารและประเด็นสิทธิในที่ดิน รวมถึงบริการข้อมูลประชาชน", difference: "ใช้ข้อเท็จจริงและสิทธิในที่ดินมากกว่างานนิติกรรมภายในทั่วไป", subjects: ["law", "publicSocial"], weights: score(["regulation", 4], ["protection", 3], ["publicCommunication", 2]), compareWith: "legal" },
-  { id: "transport", officialCode: "3-3-006", title: "นักวิชาการขนส่งปฏิบัติการ", family: "สิทธิ ระเบียบ และบริการประชาชน", summary: "สนับสนุนบริการและกำกับระบบขนส่งตามภารกิจของหน่วยงาน", difference: "ผสมงานบริการและกำกับระบบเฉพาะด้านขนส่ง", subjects: ["engineering", "publicSocial"], weights: score(["regulation", 3], ["publicCommunication", 3], ["coordination", 2]), compareWith: "legal" },
+  { id: "transport", officialCode: "3-3-006", title: "นักวิชาการขนส่งปฏิบัติการ", family: "สิทธิ ระเบียบ และบริการประชาชน", summary: "สนับสนุนบริการและกำกับระบบขนส่งตามภารกิจของหน่วยงาน", difference: "ผสมงานบริการและกำกับระบบเฉพาะด้านขนส่ง", subjects: ["engineering"], weights: score(["regulation", 3], ["publicCommunication", 3], ["coordination", 2]), compareWith: "engineer" },
   { id: "agriculture", officialCode: "3-4-001", title: "นักวิชาการเกษตรปฏิบัติการ", family: "ส่งเสริมและพัฒนาคนหรือพื้นที่", summary: "ส่งเสริมองค์ความรู้เกษตร วิเคราะห์ปัญหา และทำงานกับพื้นที่", difference: "เน้นองค์ความรู้เกษตรและการใช้ในพื้นที่ มากกว่างานพัฒนากลุ่มหรือสวัสดิการสังคม", subjects: ["agriEnvironment"], weights: score(["fieldDevelopment", 5], ["publicCommunication", 3], ["strategy", 2]), compareWith: "community-development" },
   { id: "cooperative", officialCode: "3-2-022", title: "นักวิชาการสหกรณ์ปฏิบัติการ", family: "ส่งเสริมและพัฒนาคนหรือพื้นที่", summary: "ส่งเสริมหรือกำกับความเข้มแข็งของสหกรณ์และสมาชิก", difference: "ใช้การพัฒนากลุ่มควบคู่ความเข้าใจด้านบัญชีและเศรษฐกิจสหกรณ์", subjects: ["finance", "management", "agriEnvironment"], weights: score(["fieldDevelopment", 4], ["coordination", 3], ["quantitative", 2]), compareWith: "community-development" },
   { id: "community-development", officialCode: "3-8-015", title: "นักวิชาการพัฒนาชุมชนปฏิบัติการ", family: "ส่งเสริมและพัฒนาคนหรือพื้นที่", summary: "ทำงานกับกลุ่ม ชุมชน เครือข่าย และการพัฒนาเศรษฐกิจชุมชน", difference: "เน้นความเข้มแข็งของกลุ่มและเศรษฐกิจชุมชน มากกว่างานช่วยเหลือรายกรณี", subjects: ["publicSocial", "management"], weights: score(["fieldDevelopment", 5], ["publicCommunication", 4], ["coordination", 2]), compareWith: "social-development" },
   { id: "social-development", officialCode: "3-8-008", title: "นักวิชาการพัฒนาสังคมปฏิบัติการ", family: "ส่งเสริมและพัฒนาคนหรือพื้นที่", summary: "พัฒนาคุณภาพชีวิต บริการสังคม และการประสานความช่วยเหลือ", difference: "เน้นสิทธิ กลุ่มเปราะบาง และการเข้าถึงบริการ มากกว่าการรวมกลุ่มพัฒนาเศรษฐกิจชุมชน", subjects: ["publicSocial", "health"], weights: score(["protection", 5], ["publicCommunication", 3], ["fieldDevelopment", 3]), compareWith: "community-development" },
   { id: "skills-development", officialCode: "3-8-016", title: "นักวิชาการพัฒนาฝีมือแรงงานปฏิบัติการ", family: "ส่งเสริมและพัฒนาคนหรือพื้นที่", summary: "สนับสนุนการพัฒนาทักษะอาชีพและผู้รับบริการ", difference: "เน้นการเรียนรู้และทักษะอาชีพมากกว่างานคุ้มครองสิทธิแรงงาน", subjects: ["publicSocial", "management", "engineering"], weights: score(["fieldDevelopment", 4], ["publicCommunication", 3], ["coordination", 3]), compareWith: "labour" },
-  { id: "environment", officialCode: "3-8-023", title: "นักวิชาการสิ่งแวดล้อมปฏิบัติการ", family: "กำกับ คุ้มครอง และผลกระทบต่อสาธารณะ", summary: "วิเคราะห์และติดตามผลกระทบต่อสิ่งแวดล้อม รวมถึงงานมาตรการคุ้มครอง", difference: "เน้นผลกระทบของกิจกรรมต่อทรัพยากรและสาธารณะ", subjects: ["agriEnvironment", "data"], weights: score(["protection", 4], ["fieldDevelopment", 3], ["dataDigital", 2]), compareWith: "public-health" },
-  { id: "public-health", officialCode: "3-6-015", title: "นักวิชาการสาธารณสุขปฏิบัติการ", family: "กำกับ คุ้มครอง และผลกระทบต่อสาธารณะ", summary: "สนับสนุนงานส่งเสริม ป้องกัน และคุ้มครองสุขภาพประชาชน", difference: "เน้นสุขภาพและการป้องกันโรคในประชาชน มากกว่างานผลกระทบสิ่งแวดล้อม", subjects: ["health"], weights: score(["protection", 5], ["fieldDevelopment", 3], ["publicCommunication", 3]), compareWith: "environment" },
-  { id: "food-drug", officialCode: "3-6-017", title: "นักวิชาการอาหารและยาปฏิบัติการ", family: "กำกับ คุ้มครอง และผลกระทบต่อสาธารณะ", summary: "สนับสนุนมาตรการคุ้มครองผู้บริโภคด้านอาหาร ยา และผลิตภัณฑ์สุขภาพ", difference: "ใช้ความรู้ผลิตภัณฑ์สุขภาพและการกำกับคุ้มครองผู้บริโภคเข้มข้น", subjects: ["health", "data"], weights: score(["protection", 4], ["regulation", 3], ["fieldDevelopment", 2]), compareWith: "public-health" },
-  { id: "industry", officialCode: "3-2-023", title: "นักวิชาการอุตสาหกรรมปฏิบัติการ", family: "กำกับ คุ้มครอง และผลกระทบต่อสาธารณะ", summary: "สนับสนุนหรือกำกับภารกิจด้านอุตสาหกรรม มาตรฐาน และผู้ประกอบการ", difference: "เชื่อมภารกิจอุตสาหกรรม มาตรฐาน และการส่งเสริมผู้ประกอบการ", subjects: ["engineering", "data", "finance"], weights: score(["regulation", 3], ["strategy", 2], ["fieldDevelopment", 2]), compareWith: "environment" },
+  { id: "environment", officialCode: "3-8-023", title: "นักวิชาการสิ่งแวดล้อมปฏิบัติการ", family: "กำกับ คุ้มครอง และผลกระทบต่อสาธารณะ", summary: "วิเคราะห์และติดตามผลกระทบต่อสิ่งแวดล้อม รวมถึงงานมาตรการคุ้มครอง", difference: "เน้นผลกระทบของกิจกรรมต่อทรัพยากรและสาธารณะ", subjects: ["agriEnvironment", "science"], weights: score(["protection", 4], ["fieldDevelopment", 3], ["dataDigital", 2]), compareWith: "scientist" },
+  { id: "public-health", officialCode: "3-6-015", title: "นักวิชาการสาธารณสุขปฏิบัติการ", family: "กำกับ คุ้มครอง และผลกระทบต่อสาธารณะ", summary: "สนับสนุนงานส่งเสริม ป้องกัน และคุ้มครองสุขภาพประชาชน", difference: "เน้นสุขภาพและการป้องกันโรคในประชาชน มากกว่างานผลกระทบสิ่งแวดล้อม", subjects: ["health"], professionalRequirement: "ตรวจใบอนุญาตหรือคุณสมบัติเฉพาะด้านสุขภาพตามประกาศ", weights: score(["protection", 5], ["fieldDevelopment", 3], ["publicCommunication", 3]), compareWith: "medical-science" },
+  { id: "food-drug", officialCode: "3-6-017", title: "นักวิชาการอาหารและยาปฏิบัติการ", family: "กำกับ คุ้มครอง และผลกระทบต่อสาธารณะ", summary: "สนับสนุนมาตรการคุ้มครองผู้บริโภคด้านอาหาร ยา และผลิตภัณฑ์สุขภาพ", difference: "ใช้ความรู้ผลิตภัณฑ์สุขภาพและการกำกับคุ้มครองผู้บริโภคเข้มข้น", subjects: ["health", "science"], professionalRequirement: "ตรวจใบอนุญาตหรือคุณสมบัติเฉพาะด้านสุขภาพตามประกาศ", weights: score(["protection", 4], ["regulation", 3], ["fieldDevelopment", 2]), compareWith: "public-health" },
+  { id: "industry", officialCode: "3-2-023", title: "นักวิชาการอุตสาหกรรมปฏิบัติการ", family: "กำกับ คุ้มครอง และผลกระทบต่อสาธารณะ", summary: "สนับสนุนหรือกำกับภารกิจด้านอุตสาหกรรม มาตรฐาน และผู้ประกอบการ", difference: "เชื่อมภารกิจอุตสาหกรรม มาตรฐาน และการส่งเสริมผู้ประกอบการ", subjects: ["engineering"], weights: score(["regulation", 3], ["strategy", 2], ["fieldDevelopment", 2]), compareWith: "engineer" },
   { id: "computer", officialCode: "3-1-013", title: "นักวิชาการคอมพิวเตอร์ปฏิบัติการ", family: "ข้อมูล ดิจิทัล และการสื่อสารสาธารณะ", summary: "วิเคราะห์ พัฒนา หรือดูแลระบบคอมพิวเตอร์ตามภารกิจหน่วยงาน", difference: "เน้นระบบและการแก้ปัญหาเชิงเทคนิคมากกว่างานสถิติหรือการสื่อสารข้อมูล", subjects: ["digital"], weights: score(["dataDigital", 5], ["coordination", 2], ["strategy", 2]), compareWith: "statistics" },
   { id: "it", officialCode: "3-1-015", title: "นักวิชาการเทคโนโลยีสารสนเทศปฏิบัติการ", family: "ข้อมูล ดิจิทัล และการสื่อสารสาธารณะ", summary: "วางหรือสนับสนุนการใช้เทคโนโลยีสารสนเทศและบริการดิจิทัล", difference: "เน้นการนำเทคโนโลยีไปใช้กับภารกิจและบริการของหน่วยงาน", subjects: ["digital"], weights: score(["dataDigital", 5], ["strategy", 2], ["publicCommunication", 2]), compareWith: "computer" },
   { id: "public-relations", officialCode: "3-3-005", title: "นักประชาสัมพันธ์ปฏิบัติการ", family: "ข้อมูล ดิจิทัล และการสื่อสารสาธารณะ", summary: "สื่อสารข้อมูลภารกิจรัฐ ผลิตเนื้อหา และประสานสื่อหรือประชาชน", difference: "เน้นสารและความเข้าใจของกลุ่มเป้าหมาย มากกว่างานเผยแพร่เชิงถ่ายทอดองค์ความรู้", subjects: ["communication", "publicSocial"], weights: score(["publicCommunication", 5], ["coordination", 3], ["dataDigital", 2]), compareWith: "publishing" },
   { id: "publishing", officialCode: "3-3-007", title: "นักวิชาการเผยแพร่ปฏิบัติการ", family: "ข้อมูล ดิจิทัล และการสื่อสารสาธารณะ", summary: "ถ่ายทอดความรู้ จัดสื่อหรือกิจกรรมเผยแพร่ให้กลุ่มเป้าหมาย", difference: "เน้นการทำให้คนเรียนรู้และนำไปใช้ มากกว่างานสื่อสารภาพลักษณ์หรือสื่อมวลชน", subjects: ["communication", "publicSocial"], weights: score(["publicCommunication", 4], ["fieldDevelopment", 2], ["coordination", 2]), compareWith: "public-relations" },
+  { id: "engineer", officialCode: "3-7-015", title: "วิศวกรปฏิบัติการ", family: "วิศวกรรมและโครงสร้างพื้นฐาน", summary: "วิเคราะห์ ออกแบบ ควบคุม หรือสนับสนุนงานวิศวกรรมตามภารกิจหน่วยงาน", difference: "ใช้พื้นฐานวิศวกรรมเพื่อแก้ปัญหาทางเทคนิค มากกว่างานวิเคราะห์นโยบายทั่วไป", subjects: ["engineering"], professionalRequirement: "ตรวจสาขาวิศวกรรมเฉพาะทางและใบอนุญาตประกอบวิชาชีพเมื่อประกาศกำหนด", weights: score(["dataDigital", 4], ["regulation", 3], ["coordination", 2]), compareWith: "civil-engineer" },
+  { id: "civil-engineer", officialCode: "3-7-022", title: "วิศวกรโยธาปฏิบัติการ", family: "วิศวกรรมและโครงสร้างพื้นฐาน", summary: "สนับสนุนงานโยธา โครงสร้าง และการควบคุมงานตามภารกิจหน่วยงาน", difference: "เน้นโครงสร้างและงานภาคสนามโยธามากกว่าวิศวกรรมภาพรวม", subjects: ["engineering"], professionalRequirement: "ตรวจสาขาวิศวกรรมโยธาและใบอนุญาตประกอบวิชาชีพเมื่อประกาศกำหนด", weights: score(["fieldDevelopment", 4], ["regulation", 3], ["dataDigital", 2]), compareWith: "engineer" },
+  { id: "architect", officialCode: "3-7-028", title: "สถาปนิกปฏิบัติการ", family: "สถาปัตยกรรมและผังเมือง", summary: "วิเคราะห์ ออกแบบ หรือควบคุมงานสถาปัตยกรรมตามภารกิจหน่วยงาน", difference: "เน้นการออกแบบพื้นที่และอาคาร มากกว่างานวิเคราะห์ผังเมืองเชิงนโยบาย", subjects: ["architecture"], professionalRequirement: "ตรวจสาขาสถาปัตยกรรมและใบอนุญาตประกอบวิชาชีพเมื่อประกาศกำหนด", weights: score(["strategy", 3], ["fieldDevelopment", 3], ["coordination", 2]), compareWith: "urban-planner" },
+  { id: "urban-planner", officialCode: "3-8-001", title: "นักผังเมืองปฏิบัติการ", family: "สถาปัตยกรรมและผังเมือง", summary: "วิเคราะห์และวางแผนการใช้พื้นที่หรือการพัฒนาเมืองตามภารกิจหน่วยงาน", difference: "เน้นระบบพื้นที่และการพัฒนาเมืองมากกว่างานออกแบบอาคารรายโครงการ", subjects: ["architecture"], weights: score(["strategy", 4], ["fieldDevelopment", 3], ["regulation", 2]), compareWith: "architect" },
+  { id: "scientist", officialCode: "3-5-010", title: "นักวิทยาศาสตร์ปฏิบัติการ", family: "วิทยาศาสตร์และการคุ้มครองสาธารณะ", summary: "วิเคราะห์ ทดสอบ หรือประยุกต์ความรู้วิทยาศาสตร์ตามภารกิจหน่วยงาน", difference: "เน้นกระบวนการและหลักฐานทางวิทยาศาสตร์มากกว่างานสิ่งแวดล้อมเชิงพื้นที่", subjects: ["science"], weights: score(["dataDigital", 4], ["regulation", 2], ["protection", 2]), compareWith: "environment" },
+  { id: "medical-science", officialCode: "3-6-018", title: "นักวิทยาศาสตร์การแพทย์ปฏิบัติการ", family: "วิทยาศาสตร์และสุขภาพ", summary: "สนับสนุนงานวิทยาศาสตร์การแพทย์และการคุ้มครองสุขภาพตามภารกิจหน่วยงาน", difference: "เน้นความรู้วิทยาศาสตร์การแพทย์และงานห้องปฏิบัติการมากกว่าสาธารณสุขเชิงพื้นที่", subjects: ["health", "science"], professionalRequirement: "ตรวจคุณวุฒิและเงื่อนไขวิชาชีพเฉพาะตามประกาศ", weights: score(["dataDigital", 4], ["protection", 3], ["regulation", 2]), compareWith: "public-health" },
 ];
 
 const magnitude = (vector: ScoreVector) => Math.sqrt(Object.values(vector).reduce((sum, value) => sum + value * value, 0));
@@ -329,11 +340,11 @@ const dotProduct = (left: ScoreVector, right: ScoreVector) => (Object.keys(left)
 
 export const rankPositions = (userScores: ScoreVector, subject: SubjectGroup) => {
   const userMagnitude = magnitude(userScores) || 1;
-  return positions
+  const eligiblePositions = subject === "unsure" ? positions : positions.filter((position) => position.subjects.includes(subject));
+  return eligiblePositions
     .map((position) => {
       const similarity = dotProduct(userScores, position.weights) / (userMagnitude * magnitude(position.weights));
-      const subjectBoost = subject !== "unsure" && position.subjects.includes(subject) ? 0.06 : 0;
-      return { ...position, match: Math.min(99, Math.round((similarity + subjectBoost) * 100)) };
+      return { ...position, match: Math.min(99, Math.round(similarity * 100)) };
     })
     .sort((left, right) => right.match - left.match);
 };

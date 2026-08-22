@@ -12,6 +12,7 @@ import {
   ChevronLeft,
   Compass,
   Download,
+  GraduationCap,
   HeartHandshake,
   Info,
   MapPin,
@@ -80,7 +81,7 @@ export default function Home() {
   const currentQuestion = questions[questionIndex];
   const rankedPositions = useMemo(() => rankPositions(scores, subject), [scores, subject]);
   const primaryPosition = rankedPositions[0];
-  const comparisonPosition = positions.find((position) => position.id === primaryPosition?.compareWith) ?? rankedPositions[1];
+  const comparisonPosition = rankedPositions.find((position) => position.id === primaryPosition?.compareWith) ?? rankedPositions[1] ?? primaryPosition;
   const selectedSubject = subjectGroups.find((group) => group.id === subject) ?? subjectGroups.at(-1)!;
   const topDimensions = useMemo(
     () => (Object.entries(scores) as Array<[keyof ScoreVector, number]>).sort((left, right) => right[1] - left[1]).slice(0, 3),
@@ -200,8 +201,8 @@ export default function Home() {
               <div className="ready-guide"><img src={ASSETS.welcome} alt="อวตารเชิญชวนเริ่มแบบทดสอบ" /></div>
               <div className="ready-note tape-note">
                 <div className="eyebrow"><MapPin size={15} /> ก่อนออกเดิน</div>
-                <h2>เลือกกลุ่มสาขาวิชา<br />ถ้าอยากให้ช่วยเรียงผล</h2>
-                <p>ข้ามได้เลยนะครับ คำตอบนี้ช่วยเพียงบอกความเกี่ยวข้องเบื้องต้นของตำแหน่ง ไม่ใช้ตัดสิทธิ์ และต้องตรวจคุณสมบัติจากประกาศรับสมัครจริงเสมอ</p>
+                <h2>เลือกกลุ่มสาขาวุฒิ<br />เพื่อกรองตำแหน่งที่ตรงทาง</h2>
+                <p>ถ้าเลือกสาขา ระบบจะแสดงเฉพาะตำแหน่งที่กลุ่มวุฒิมีความสัมพันธ์ และค่อยเรียงตามวิธีทำงานของคุณ เพื่อไม่แนะนำงานข้ามสายโดยไม่มีเหตุผล</p>
                 <Dialog>
                   <DialogTrigger asChild>
                     <button className="catalog-trigger"><BookOpen size={17} /><span>ดูสารบัญสายงาน ก.พ.</span><b>{scopedAcademicRoles.length} สายงาน</b></button>
@@ -210,7 +211,7 @@ export default function Home() {
                     <DialogHeader>
                       <p className="catalog-source">สำนักงาน ก.พ. · มาตรฐานกำหนดตำแหน่งประเภทวิชาการ</p>
                       <DialogTitle>สารบัญสายงานที่ใช้สำรวจต่อได้</DialogTitle>
-                      <DialogDescription>แสดง {scopedAcademicRoles.length} สายงานภายในขอบเขตเว็บไซต์ โดยตัดสายการศึกษาและงานส่งเสริมการปกครองท้องถิ่นตามขอบเขตที่เลือกไว้ ผลแบบทดสอบยังแนะนำเฉพาะตำแหน่งที่มีโมเดลลักษณะงานครบถ้วน</DialogDescription>
+                      <DialogDescription>แสดง {scopedAcademicRoles.length} สายงานภายในขอบเขตเว็บไซต์ โดยตัดสายการศึกษาและงานส่งเสริมการปกครองท้องถิ่นตามขอบเขตที่เลือกไว้ ผลแบบทดสอบจะกรองตามกลุ่มสาขาวุฒิก่อนจัดอันดับ</DialogDescription>
                     </DialogHeader>
                     <div className="catalog-controls">
                       <input value={catalogQuery} onChange={(event) => setCatalogQuery(event.target.value)} placeholder="ค้นหาชื่อสายงาน เช่น การเงิน, เกษตร, วิศวกรรม" aria-label="ค้นหาสายงาน" />
@@ -254,16 +255,16 @@ export default function Home() {
           {stage === "result" && primaryPosition && comparisonPosition && (
             <motion.section className="result-scene position-result" key="result" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.38, ease: [0.23, 1, 0.32, 1] }}>
               <div className="result-landscape" aria-hidden="true" style={sceneStyle(SCENE_ASSETS.result)} />
-              <div className="result-header"><div className="eyebrow"><Sparkles size={15} /> บทสุดท้าย — ตำแหน่งที่น่าลอง</div><h2>เห็นร่องรอยของคุณ<br /><em>บนแผนที่ตำแหน่ง</em></h2></div>
+              <div className="result-header"><div className="eyebrow"><Sparkles size={15} /> ผลคัดกรองตามกลุ่มสาขาวุฒิ</div><h2>เห็นร่องรอยของคุณ<br /><em>บนแผนที่ตำแหน่ง</em></h2></div>
               <div className="result-grid">
-                <article className="result-card position-card"><div className="result-tag"><Compass size={17} /> อันดับ 1 จากคำตอบที่คุณเลือก</div><p className="archetype">{primaryPosition.family}</p><h3>{primaryPosition.title}</h3><p className="profile-subtitle">{primaryPosition.summary}</p><div className="trait-row"><span>{selectedSubject.shortLabel}</span><span>ความสอดคล้อง {primaryPosition.match}%</span></div><div className="reflection-card"><PenLine size={19} /><p>{primaryPosition.difference}</p></div></article>
+                <article className="result-card position-card"><div className="result-tag"><Compass size={17} /> อันดับ 1 จากคำตอบที่คุณเลือก</div><p className="archetype">{primaryPosition.family}</p><h3>{primaryPosition.title}</h3><p className="profile-subtitle">{primaryPosition.summary}</p><div className="trait-row"><span>{selectedSubject.shortLabel}</span><span>ความสอดคล้อง {primaryPosition.match}%</span></div>{subject !== "unsure" && <div className="qualification-guard"><GraduationCap size={17} /><p><b>ผ่านตัวกรองกลุ่มวุฒิ: {selectedSubject.shortLabel}</b><span>{primaryPosition.professionalRequirement ?? "โปรดเทียบชื่อปริญญา สาขา และทางกับประกาศรับสมัครก่อนสมัครจริง"}</span></p></div>}<div className="reflection-card"><PenLine size={19} /><p>{primaryPosition.difference}</p></div></article>
                 <aside className="result-side-note tape-note"><h4>คุณน่าจะมีพลัง<br />กับงานแบบนี้</h4><ul>{topDimensions.map(([dimension]) => <li key={dimension}><Check size={16} />{dimensionLabels[dimension]}</li>)}</ul><p className="side-note-foot">สาขาที่เลือกช่วยเรียงความเกี่ยวข้องของตำแหน่งเท่านั้น ไม่ได้ยืนยันคุณสมบัติในการสมัคร</p></aside>
               </div>
               <section className="comparison-card"><div className="comparison-heading"><Scale size={20} /><span>ถ้าลังเลระหว่างสองตำแหน่ง</span></div><div className="comparison-pair"><article><p>ตำแหน่งที่คุณได้อันดับ 1</p><h4>{primaryPosition.title}</h4><span>{primaryPosition.difference}</span></article><div className="versus-mark">เทียบกับ</div><article><p>ตำแหน่งที่ใกล้เคียง</p><h4>{comparisonPosition.title}</h4><span>{comparisonPosition.difference}</span></article></div></section>
               <section className="all-paths position-ranking" aria-label="ตำแหน่งที่น่าลองสำรวจ"><div className="all-paths-heading"><span>3 ตำแหน่งที่น่าลองสำรวจต่อ</span><p>เรียงจากความสอดคล้องของรูปแบบงาน</p></div><div className="role-ranking-list">{rankedPositions.slice(0, 3).map((position, index) => <article className="role-rank" key={position.id}><span className="path-order">0{index + 1}</span><div><b>{position.title}</b><small>{position.family}</small></div><strong>{position.match}%</strong></article>)}</div></section>
               <div className="result-footer"><div className="footer-guide"><img src={ASSETS.celebrate} alt="อวตารร่วมแสดงความยินดี" /><p>ใช้ผลนี้เป็นจุดตั้งต้น<br />แล้วค่อยไปอ่านประกาศจริงครับ</p></div><div className="result-actions"><Button variant="ghost" className="quiet-button" onClick={restart}><RotateCcw size={18} /> ลองตอบอีกครั้ง</Button><Button className="journey-button" onClick={copySummary}>{copied ? <Check size={18} /> : <Share2 size={18} />}{copied ? "คัดลอกแล้ว" : "คัดลอกผลลัพธ์"}</Button></div></div>
               <div className="result-route-system" aria-hidden="true"><span>01</span><i /><span><Compass size={13} /></span><i /><span>✓</span></div>
-              <p className="disclaimer"><Info size={12} /> ผลลัพธ์นี้เป็นการสำรวจความสอดคล้องของรูปแบบงานกับตำแหน่งข้าราชการประเภทวิชาการระดับปฏิบัติการ ไม่ใช่การรับรองคุณสมบัติหรือการคาดการณ์ผลสอบ โปรดตรวจสาขาวิชา คุณสมบัติเฉพาะ และรายละเอียดจากประกาศรับสมัครของหน่วยงานจริงเสมอ โดยดูมาตรฐานกำหนดตำแหน่งจาก <a href="https://knowledge.ocsc.go.th/th/standard-position/officer/" target="_blank" rel="noreferrer">สำนักงาน ก.พ.</a></p>
+              <p className="disclaimer"><Info size={12} /> เมื่อเลือกสาขาวุฒิ ผลลัพธ์จะกรองเฉพาะตำแหน่งที่กลุ่มสาขามีความสัมพันธ์ก่อนเรียงตามคำตอบ แต่ยังไม่ใช่การรับรองสิทธิสมัคร โปรดตรวจชื่อปริญญา สาขา และ “ทาง” ในประกาศรับสมัคร พร้อมค้นหาวุฒิของตนที่ <a href="https://accreditation.ocsc.go.th/accreditation" target="_blank" rel="noreferrer">OCSC e-Accreditation</a> เสมอ</p>
             </motion.section>
           )}
         </AnimatePresence>
