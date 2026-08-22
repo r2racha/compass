@@ -171,7 +171,6 @@ export default function Home() {
               <div className="hero-washi hero-washi-left" aria-hidden="true">สมุดเทียบตำแหน่ง</div><div className="hero-washi hero-washi-right" aria-hidden="true">ระดับปฏิบัติการ</div>
               <div className="hero-copy">
                 <div className="eyebrow"><Sparkles size={15} /> สำหรับผู้สนใจตำแหน่งประเภทวิชาการ</div>
-                <p className="chapter-number">บทที่ 01 — จุดเริ่มต้น</p>
                 <h1>ตำแหน่งไหน<br /><em>เหมาะกับวิธีทำงานของคุณ?</em></h1>
                 <p className="hero-description">สำรวจตำแหน่งราชการระดับปฏิบัติการจากสถานการณ์ทำงานจริง แล้วเปรียบเทียบทางเลือกที่คนมักลังเลระหว่างกันอย่างเป็นรูปธรรม</p>
                 <Button className="journey-button" onClick={() => setStage("ready")}>เปิดแผนที่ตำแหน่ง <ArrowRight size={19} /></Button>

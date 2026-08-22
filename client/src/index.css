@@ -280,8 +280,8 @@ h1 em, h2 em { color: #698567; font-style: normal; }
   .chapter-number { margin-top: 18px; }
   .hero-copy h1, .result-header h2 { font-size: clamp(36px, 11vw, 50px); }
   .hero-description { margin-top: 18px; font-size: 14px; line-height: 1.85; }
-  .hero-guide { right: 8%; bottom: -1%; width: 65%; }
-  .speech-bubble { left: -30%; top: 17%; padding: 10px 12px; font-size: 12px; }
+  .hero-guide { right: 5%; bottom: -1%; width: 56%; }
+  .speech-bubble { left: -58%; top: -14%; max-width: 190px; padding: 10px 12px; background: rgba(255,253,247,.98); font-size: 11px; line-height: 1.5; box-shadow: 0 7px 15px rgba(88,64,42,.13); }
   .route-start { left: 22px; bottom: 18px; }
   .hero-washi-left { top: 15px; left: 4%; font-size: 9px; }
   .hero-washi-right { top: 18px; right: 4%; font-size: 9px; }
