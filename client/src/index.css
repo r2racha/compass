@@ -252,12 +252,14 @@ h1 em, h2 em { color: #698567; font-style: normal; }
 .profile-rank b { color: #574a3f; font-size: 13px; font-weight: 700; }
 .profile-rank small { overflow: hidden; color: #948475; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
 .profile-rank strong { color: #668066; font-size: 13px; }
-.practice-callout { position: relative; z-index: 2; max-width: 690px; margin: 24px auto 0; padding: 17px 20px 15px; border: 1px dashed #cbb48e; border-radius: 5px 18px 7px 15px; background: linear-gradient(108deg, rgba(244,235,217,.97), rgba(255,250,240,.96)); box-shadow: 4px 5px 0 rgba(203,184,151,.22); transform: rotate(-.45deg); text-align: center; }
+.practice-callout { position: relative; z-index: 2; max-width: 690px; margin: 24px auto 0; padding: 18px 20px 17px; border: 1px dashed #cbb48e; border-radius: 5px 18px 7px 15px; background: linear-gradient(108deg, rgba(244,235,217,.97), rgba(255,250,240,.96)); box-shadow: 4px 5px 0 rgba(203,184,151,.22); transform: rotate(-.45deg); text-align: center; }
 .practice-callout::before { content: "ลองทำเพิ่มอีกนิด"; position: absolute; top: -11px; left: 50%; padding: 4px 12px; background: rgba(205,220,198,.75); color: #5d795f; font-size: 9px; font-weight: 700; letter-spacing: .05em; transform: translateX(-50%) rotate(1deg); white-space: nowrap; }
 .practice-callout p { margin: 0 0 8px; color: #4e4035; font-size: clamp(18px, 2vw, 22px); font-weight: 700; }
-.practice-callout a { display: inline-flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px; color: #6b5140; font-size: 13px; font-weight: 700; text-decoration: none; }
-.practice-callout a:hover { color: #4f7b54; text-decoration: underline; text-decoration-style: dashed; text-underline-offset: 3px; }
-.practice-callout a small { flex-basis: 100%; color: #93806d; font-size: 10px; font-weight: 600; }
+.practice-callout a { display: inline-grid; justify-items: center; gap: 5px; color: #6b5140; font-weight: 700; text-decoration: none; }
+.practice-callout a:hover strong { color: #4f7b54; text-decoration: underline; text-decoration-style: dashed; text-underline-offset: 4px; }
+.practice-tap { display: inline-flex; align-items: center; justify-content: center; gap: 6px; color: #7f6b58; font-size: 12px; }
+.practice-tap svg { color: #779174; transform: rotate(180deg); }
+.practice-callout a strong { color: #5b7c5e; font-size: clamp(18px, 2.8vw, 24px); letter-spacing: -.025em; line-height: 1.2; }
 .share-card-section { position: relative; z-index: 1; max-width: 1040px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(265px, .6fr); gap: 24px; align-items: center; margin: 21px auto 0; padding: 28px 27px 24px; border: 1px solid #d6c7ad; border-radius: 24px 12px 28px 17px; background-color: #fffaf0; background-image: linear-gradient(110deg, rgba(237,246,233,.9), rgba(255,250,240,.94)), repeating-linear-gradient(0deg, rgba(125,101,77,.025) 0 1px, transparent 1px 6px); box-shadow: 7px 8px 0 rgba(209,191,160,.24); }
 .share-card-section::before { content: ""; position: absolute; left: 30px; right: 42%; top: 13px; height: 19px; border-top: 2px dashed rgba(94,127,91,.56); border-radius: 50%; transform: rotate(-1deg); pointer-events: none; }
 .share-card-section::after { content: "↗"; position: absolute; right: 20px; top: 8px; color: #a9b99e; font-size: 29px; font-weight: 700; transform: rotate(8deg); }
@@ -411,11 +413,15 @@ h1 em, h2 em { color: #698567; font-style: normal; }
   .profile-rank img { width: 43px; height: 49px; }
   .profile-rank b { font-size: 12px; }
   .profile-rank small { font-size: 9px; }
-  .share-card-section { grid-template-columns: 1fr; gap: 17px; margin-top: 17px; padding: 21px 17px; }
-  .share-card-section h3 { font-size: 25px; }
-  .share-actions { display: grid; grid-template-columns: 1fr 1fr; }
+  .practice-callout { margin-top: 20px; padding: 17px 14px 15px; }
+  .practice-callout p { font-size: 18px; }
+  .practice-callout a strong { font-size: 21px; }
+  .share-card-section { grid-template-columns: 1fr; gap: 15px; margin-top: 17px; padding: 21px 17px 19px; }
+  .share-card-section h3 { font-size: 21px; line-height: 1.24; letter-spacing: -.045em; }
+  .share-card-section > div > p:not(.share-kicker) { margin-top: 8px; font-size: 11px; line-height: 1.65; }
+  .share-actions { display: grid; grid-template-columns: 1fr; gap: 8px; }
   .share-actions .journey-button, .share-outline-button { width: 100%; justify-content: center; }
-  .copy-link-button { grid-column: 1 / -1; justify-content: center; }
+  .copy-link-button { grid-column: 1 / -1; justify-content: center; padding-top: 6px; }
   .path-bars { grid-template-columns: 1fr; gap: 11px; }
   .result-footer { align-items: center; min-height: 0; margin-top: 19px; }
   .footer-guide { display: none; }
