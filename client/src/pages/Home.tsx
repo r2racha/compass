@@ -49,6 +49,9 @@ const ASSETS = {
   operations: pageAsset("avatar-operations.png", "/manus-storage/avatar-operations_af44dda8.png"),
   analyst: pageAsset("avatar-analyst.png", "/manus-storage/avatar-analyst_bb718191.png"),
   digital: pageAsset("avatar-digital.png", "/manus-storage/avatar-digital_88535d6f.png"),
+  communicator: pageAsset("avatar-communicator.png", "/manus-storage/avatar-communicator_dc35cc16.png"),
+  field: pageAsset("avatar-field.png", "/manus-storage/avatar-field_74b01597.png"),
+  governance: pageAsset("avatar-governance.png", "/manus-storage/avatar-governance_1d37cc45.png"),
   community: pageAsset("avatar-community.png", "/manus-storage/avatar-community_2043e629.png"),
 } as const;
 
@@ -106,6 +109,11 @@ export default function Home() {
   const currentQuestion = questions[questionIndex];
   const rankedProfiles = useMemo(() => rankWorkProfiles(scores), [scores]);
   const primaryProfile = rankedProfiles[0];
+  const closeProfiles = useMemo(() => {
+    if (!primaryProfile) return [];
+    return rankedProfiles.filter((profile) => primaryProfile.score - profile.score <= 5).slice(0, 3);
+  }, [primaryProfile, rankedProfiles]);
+  const isBlendedProfile = closeProfiles.length > 1;
   const topDimensions = useMemo(
     () => (Object.entries(scores) as Array<[keyof ScoreVector, number]>).sort((left, right) => right[1] - left[1]).slice(0, 3),
     [scores],
@@ -302,7 +310,7 @@ export default function Home() {
           <span className="brand-mark"><img src={ASSETS.logo} alt="" /></span>
           <span className="brand-wordmark"><strong>เข็มทิศข้าราชการ</strong><small>สายไหนเหมาะกับคุณ?</small></span>
         </button>
-        <div className="header-note"><PenLine size={16} strokeWidth={1.8} /><span>10 คำถามชวนสำรวจตัวเอง</span></div>
+        <div className="header-note"><PenLine size={16} strokeWidth={1.8} /><span>16 คำถามชวนสำรวจตัวเอง</span></div>
       </header>
 
       <main>
@@ -312,13 +320,13 @@ export default function Home() {
               <div className="hero-painting" style={sceneStyle(SCENE_ASSETS.hero)} aria-hidden="true" />
               <span className="notebook-seam" aria-hidden="true" />
               <div className="hero-route-system" aria-hidden="true"><svg viewBox="0 0 1200 650" preserveAspectRatio="none"><path d="M 10 566 C 165 596, 260 570, 350 510 S 486 412, 623 428 S 782 384, 773 286 S 948 179, 1185 260" /></svg><span className="route-marker route-marker-start">01</span><span className="route-marker route-marker-middle">02</span><span className="route-marker route-marker-end"><Compass size={15} /></span><span className="route-note route-note-start">วิธีทำงานของคุณ</span><span className="route-note route-note-end">ผลลัพธ์ของคุณ</span></div>
-              <div className="hero-washi hero-washi-left" aria-hidden="true">10 สถานการณ์</div><div className="hero-washi hero-washi-right" aria-hidden="true">แชร์ชวนเพื่อนได้</div>
+              <div className="hero-washi hero-washi-left" aria-hidden="true">16 สถานการณ์</div><div className="hero-washi hero-washi-right" aria-hidden="true">แชร์ชวนเพื่อนได้</div>
               <div className="hero-copy">
                 <div className="eyebrow"><Sparkles size={15} /> แบบทดสอบชวนสำรวจตัวเอง</div>
                 <h1>สายไหน<br /><em>เหมาะกับคุณ?</em></h1>
                 <p className="hero-description">เลือกคำตอบจากสถานการณ์ทำงานสั้น ๆ แล้วดูว่าคุณน่าจะมีพลังกับงานแบบไหนในโลกข้าราชการ</p>
                 <Button className="journey-button" onClick={() => setStage("ready")}>เริ่มค้นหาสายของคุณ <ArrowRight size={19} /></Button>
-                <p className="reassurance"><HeartHandshake size={16} /> เล่นสนุกเพื่อสำรวจตัวเอง ไม่ใช่การประเมินผลหรือรับรองสิทธิสมัคร</p>
+                <p className="reassurance"><HeartHandshake size={16} /> เล่นสนุกเพื่อสำรวจตัวเอง</p>
               </div>
               <div className="hero-guide"><div className="speech-bubble"><small>ผู้พาเดินทาง</small>ลองเลือกจากสิ่งที่<br />เป็นตัวคุณจริง ๆ นะ</div><img src={ASSETS.greeting} alt="อวตารข้าราชการทักทาย" /></div>
               <div className="route-start"><span />เริ่มออกเดิน</div>
@@ -332,9 +340,9 @@ export default function Home() {
               <div className="ready-note tape-note">
                 <div className="eyebrow"><MapPin size={15} /> ก่อนออกเดิน</div>
                 <h2>ตอบจากสิ่งที่คุณ<br />อยากทำจริง ๆ</h2>
-                <p>ไม่มีคำตอบถูกผิด และไม่ต้องเลือกสาขาที่เรียนมา เราจะดูจากวิธีที่คุณคิด จัดการ และทำงานกับผู้คน เพื่อชวนสำรวจลักษณะงานที่น่าจะถูกจริตคุณ</p>
-                <div className="playful-profile-preview" aria-label="บุคลิกงานที่อาจพบ"><span>วางแผน</span><span>จัดการ</span><span>ตัวเลข</span><span>ดิจิทัล</span><span>ผู้คน</span></div>
-                <div className="readiness-grid compact-grid"><div><b>10</b><span>คำถามสถานการณ์</span></div><div><b>5</b><span>บุคลิกการทำงาน</span></div><div><b>3</b><span>สายงานน่าลอง</span></div></div>
+                <p>ชวนสำรวจลักษณะงานที่น่าจะถูกจริตคุณ</p>
+                <div className="playful-profile-preview" aria-label="บทบาทงานที่อาจพบ"><span>วางแผน</span><span>จัดการ</span><span>ตัวเลข</span><span>ดิจิทัล</span><span>สื่อสาร</span><span>พื้นที่</span><span>กติกา</span><span>ผู้คน</span></div>
+                <div className="readiness-grid compact-grid"><div><b>16</b><span>คำถามสถานการณ์</span></div><div><b>8</b><span>บทบาทการทำงาน</span></div><div><b>3</b><span>สายงานน่าลอง</span></div></div>
                 <div className="ready-actions"><Button variant="ghost" className="quiet-button" onClick={() => setStage("welcome")}><ChevronLeft size={18} /> กลับ</Button><Button className="journey-button" onClick={startQuiz}>เริ่มตอบคำถาม <ArrowRight size={19} /></Button></div>
               </div>
             </motion.section>
@@ -352,17 +360,17 @@ export default function Home() {
           {stage === "result" && primaryProfile && (
             <motion.section className="result-scene playful-result" key="result" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.38, ease: [0.23, 1, 0.32, 1] }}>
               <div className="result-landscape" style={sceneStyle(SCENE_ASSETS.result)} aria-hidden="true" />
-              <div className="result-header"><div className="eyebrow"><Sparkles size={15} /> ผลลัพธ์จากวิธีที่คุณเลือก</div><h2>คุณน่าจะเป็น<br /><em>{primaryProfile.title}</em></h2></div>
+              <div className="result-header"><div className="eyebrow"><Sparkles size={15} /> ผลลัพธ์จากวิธีที่คุณเลือก</div><h2>{isBlendedProfile ? <>คุณมีสไตล์ผสม<br /><em>{closeProfiles.slice(0, 2).map((profile) => profile.title).join(" × ")}</em></> : <>บทบาทที่ใกล้เคียง<br /><em>{primaryProfile.title}</em></>}</h2></div>
               <div className="result-grid playful-result-grid">
                 <article className="result-card archetype-card" style={{ "--profile-accent": primaryProfile.accent } as React.CSSProperties}>
-                  <div className="result-tag"><Compass size={17} /> โปรไฟล์การทำงานของคุณ</div>
+                  <div className="result-tag"><Compass size={17} /> บทบาทที่ใกล้เคียงที่สุด</div>
                   <div className="archetype-top"><div><p className="archetype">{primaryProfile.nickname}</p><h3>{primaryProfile.title}</h3><p className="profile-subtitle">{primaryProfile.summary}</p></div><img className="archetype-avatar" src={ASSETS[primaryProfile.avatarKey]} alt={`อวตาร${primaryProfile.title}`} /></div>
                   <div className="reflection-card"><PenLine size={19} /><p>{primaryProfile.reflection}</p></div>
                   <div className="example-role-list"><span>ตัวอย่างสายงานที่น่าลองสำรวจ</span><div>{primaryProfile.examples.map((example) => <b key={example}>{example}</b>)}</div></div>
                 </article>
                 <aside className="result-side-note tape-note"><h4>สิ่งที่คำตอบของคุณ<br />บอกเรา</h4><ul>{topDimensions.map(([dimension]) => <li key={dimension}><Check size={16} />{dimensionLabels[dimension]}</li>)}</ul><p className="side-note-foot">นี่เป็นคำชวนให้สำรวจตัวเอง ไม่ได้ชี้ขาดว่าคุณเหมาะหรือสมัครงานใดได้</p></aside>
               </div>
-              <section className="all-paths playful-ranking" aria-label="บุคลิกงานที่ใกล้เคียง"><div className="all-paths-heading"><span>อีก 2 บทบาทที่มีแววใกล้เคียง</span><p>เก็บไว้เป็นไอเดียสำหรับลองสำรวจต่อ</p></div><div className="profile-ranking-list">{rankedProfiles.slice(1, 3).map((profile, index) => <article className="profile-rank" key={profile.id}><img src={ASSETS[profile.avatarKey]} alt="" /><span className="path-order">0{index + 2}</span><div><b>{profile.title}</b><small>{profile.nickname}</small></div><strong>{profile.match}%</strong></article>)}</div></section>
+              <section className="all-paths playful-ranking" aria-label="บทบาทที่ใกล้เคียง"><div className="all-paths-heading"><span>อีก 2 บทบาทที่น่าลองสำรวจ</span><p>คะแนนใกล้เคียงกันไม่ได้แปลว่าคุณต้องเลือกได้เพียงแบบเดียว</p></div><div className="profile-ranking-list">{rankedProfiles.slice(1, 3).map((profile, index) => <article className="profile-rank" key={profile.id}><img src={ASSETS[profile.avatarKey]} alt="" /><span className="path-order">0{index + 2}</span><div><b>{profile.title}</b><small>{profile.nickname}</small></div><strong>ใกล้เคียง</strong></article>)}</div></section>
               <section className="share-card-section" aria-label="แชร์ผลลัพธ์"><div><p className="share-kicker">ชวนเพื่อนมาเล่นด้วยกัน</p><h3>แชร์การ์ดของคุณ<br />พร้อมลิงก์กลับมาเล่นได้เลย</h3><p>ปุ่มแชร์จะส่งรูปการ์ดพร้อมลิงก์เว็บไซต์ และในการ์ดมี QR ให้สแกนกลับมาเล่นได้เสมอ</p></div><div className="share-actions"><Button className="journey-button" onClick={shareResult} disabled={shareState === "downloading"}><Share2 size={18} />{shareState === "downloading" ? "กำลังทำการ์ด..." : shareState === "shared" ? "แชร์แล้ว" : shareState === "copied" ? "คัดลอกลิงก์แล้ว" : "แชร์ผลของฉัน"}</Button><Button variant="outline" className="share-outline-button" onClick={downloadShareCard} disabled={shareState === "downloading"}><Download size={17} /> ดาวน์โหลดการ์ด</Button><button className="copy-link-button" onClick={copyPlayLink}><Copy size={15} /> คัดลอกลิงก์เล่น</button></div></section>
               <div className="result-footer"><div className="footer-guide"><img src={ASSETS.celebrate} alt="อวตารร่วมแสดงความยินดี" /><p>เก็บผลนี้ไว้เป็น<br />ไอเดียสนุก ๆ นะ</p></div><Button variant="ghost" className="quiet-button" onClick={restart}><RotateCcw size={18} /> ลองตอบอีกครั้ง</Button></div>
               <div className="result-route-system" aria-hidden="true"><span>01</span><i /><span><Compass size={13} /></span><i /><span>✓</span></div>
