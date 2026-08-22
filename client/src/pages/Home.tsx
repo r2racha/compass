@@ -9,6 +9,7 @@ import {
   Check,
   ChevronLeft,
   Compass,
+  Download,
   HeartHandshake,
   Info,
   MapPin,
@@ -36,6 +37,7 @@ const pageAsset = (fileName: string, manusPath: string) => IS_GITHUB_PAGES ? `${
 
 const ASSETS = {
   logo: pageAsset("compass-mark.png", "/manus-storage/compass-mark_81d0b870.png"),
+  lineQr: pageAsset("line-contact-qr.png", "/manus-storage/line-contact-qr_eb89b25f.png"),
   welcome: pageAsset("avatar-welcome.png", "/manus-storage/avatar-welcome_4e263376.png"),
   pointing: pageAsset("avatar-pointing.png", "/manus-storage/avatar-pointing_22490f0e.png"),
   explain: pageAsset("avatar-explain.png", "/manus-storage/avatar-explain_991915a9.png"),
@@ -230,7 +232,23 @@ export default function Home() {
           )}
         </AnimatePresence>
       </main>
-      <footer className="site-footer"><span className="footer-line" /><p>เข็มทิศราชการ <i>—</i> ค่อย ๆ รู้จักวิธีทำงานของตัวเอง แล้วค่อยเลือกทางที่อยากไป</p><span className="footer-line" /></footer>
+      <footer className="site-footer">
+        {(stage === "welcome" || stage === "result") && (
+          <section className="contact-footer-card" aria-label="ช่องทางติดต่อ Road to Kharachakar">
+            <div className="contact-footer-copy">
+              <span className="contact-kicker">Road to Kharachakar</span>
+              <h2>สนใจ “ชีทสรุปสอบราชการ<br />แบบเข้าใจง่าย”</h2>
+              <p>ติดต่อ LINE ID <strong>@891kiemx</strong></p>
+              <span className="contact-page">เพจ ทางมุ่งสู่ข้าราชการ</span>
+            </div>
+            <div className="contact-qr-wrap">
+              <img src={ASSETS.lineQr} alt="QR Code สำหรับเพิ่มเพื่อน LINE ID @891kiemx" />
+              <a className="qr-download" href={ASSETS.lineQr} download="QR-Line-891kiemx.png"><Download size={15} /> ดาวน์โหลด QR Code</a>
+            </div>
+          </section>
+        )}
+        <div className="footer-signoff"><span className="footer-line" /><p>เข็มทิศราชการ <i>—</i> ค่อย ๆ รู้จักวิธีทำงานของตัวเอง แล้วค่อยเลือกทางที่อยากไป</p><span className="footer-line" /></div>
+      </footer>
     </div>
   );
 }
