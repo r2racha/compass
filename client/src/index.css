@@ -254,6 +254,8 @@ h1 em, h2 em { color: #698567; font-style: normal; }
 .contact-kicker { display: inline-block; margin-bottom: 7px; padding: 4px 8px; background: rgba(205,220,198,.71); color: #5d795f; font-size: 9px; font-weight: 700; letter-spacing: .08em; transform: rotate(-2deg); }
 .contact-footer-copy h2 { margin: 0; color: #4c4036; font-size: clamp(19px, 2.4vw, 27px); font-weight: 700; letter-spacing: -.05em; line-height: 1.35; }
 .contact-footer-copy p { margin: 9px 0 4px; color: #78695d; font-size: 13px; line-height: 1.55; }
+.contact-footer-copy .contact-line-id { font-size: 16px; }
+.contact-footer-copy .contact-line-id strong { font-size: 16px; }
 .contact-footer-copy strong { color: #5b7c5e; font-weight: 700; }
 .contact-page { color: #9b8b79; font-size: 10px; font-weight: 700; }
 .contact-qr-wrap { display: grid; justify-items: center; gap: 7px; padding: 6px; border: 1px dashed #d8c8ae; border-radius: 13px 16px 10px 14px; background: #f7f1e7; transform: rotate(2deg); }

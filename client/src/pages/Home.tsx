@@ -163,7 +163,7 @@ export default function Home() {
         <button className="brand-lockup" onClick={restart} aria-label="กลับสู่หน้าแรก">
           <span className="brand-mark"><img src={ASSETS.logo} alt="" /></span>
           <span className="brand-wordmark">
-            <strong>เข็มทิศราชการ</strong>
+            <strong>เข็มทิศข้าราชการ ก.พ.</strong>
             <small>ค้นหาตำแหน่งที่น่าลองในแบบของคุณ</small>
           </span>
         </button>
@@ -272,10 +272,9 @@ export default function Home() {
         {(stage === "welcome" || stage === "result") && (
           <section className="contact-footer-card" aria-label="ช่องทางติดต่อ Road to Kharachakar">
             <div className="contact-footer-copy">
-              <span className="contact-kicker">Road to Kharachakar</span>
+              <span className="contact-kicker">เพจ ทางมุ่งสู่ข้าราชการ Road to Kharachakar</span>
               <h2>สนใจ “ชีทสรุปสอบราชการ<br />แบบเข้าใจง่าย”</h2>
-              <p>ติดต่อ LINE ID <strong>@891kiemx</strong></p>
-              <span className="contact-page">เพจ ทางมุ่งสู่ข้าราชการ</span>
+              <p className="contact-line-id">ติดต่อ LINE ID <strong>@891kiemx</strong></p>
             </div>
             <div className="contact-qr-wrap">
               <img src={ASSETS.lineQr} alt="QR Code สำหรับเพิ่มเพื่อน LINE ID @891kiemx" />
