@@ -1,40 +1,38 @@
 /**
  * Style reminder — สมุดบันทึกนักเดินทาง: Japanese colored-pencil storybook,
  * ivory paper, sage trail, asymmetric composition, gentle self-discovery.
+ * This page frames “สายไหนเหมาะกับคุณ” as a playful exploration, never an eligibility assessment.
  */
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AnimatePresence, motion } from "framer-motion";
+import QRCode from "qrcode";
 import {
   ArrowRight,
-  BookOpen,
   Check,
   ChevronLeft,
   Compass,
+  Copy,
   Download,
-  GraduationCap,
   HeartHandshake,
   Info,
   MapPin,
   PenLine,
   RotateCcw,
-  Scale,
   Share2,
   Sparkles,
 } from "lucide-react";
 import { useMemo, useState, type CSSProperties } from "react";
 import {
   dimensionLabels,
-  positions,
   questions,
-  rankPositions,
-  subjectGroups,
+  rankWorkProfiles,
   type QuizOption,
   type ScoreVector,
-  type SubjectGroup,
+  type WorkProfile,
   zeroScores,
 } from "@/data/quiz";
-import { catalogGroups, scopedAcademicRoles, type CatalogGroupId } from "@/data/ocscCatalog";
+
+const PLAY_URL = "https://r2racha.github.io/compass/";
 
 const IS_GITHUB_PAGES = import.meta.env.VITE_GITHUB_PAGES === "true";
 const pageAsset = (fileName: string, manusPath: string) => IS_GITHUB_PAGES ? `${import.meta.env.BASE_URL}images/${fileName}` : manusPath;
@@ -47,6 +45,11 @@ const ASSETS = {
   explain: pageAsset("avatar-explain.png", "/manus-storage/avatar-explain_991915a9.png"),
   greeting: pageAsset("avatar-greeting.png", "/manus-storage/avatar-greeting_0f2839e0.png"),
   celebrate: pageAsset("avatar-celebrate.png", "/manus-storage/avatar-celebrate_cbcc0af4.png"),
+  planner: pageAsset("avatar-planner.png", "/manus-storage/avatar-planner_a95835dd.png"),
+  operations: pageAsset("avatar-operations.png", "/manus-storage/avatar-operations_af44dda8.png"),
+  analyst: pageAsset("avatar-analyst.png", "/manus-storage/avatar-analyst_bb718191.png"),
+  digital: pageAsset("avatar-digital.png", "/manus-storage/avatar-digital_88535d6f.png"),
+  community: pageAsset("avatar-community.png", "/manus-storage/avatar-community_2043e629.png"),
 } as const;
 
 const SCENE_ASSETS = {
@@ -58,6 +61,7 @@ const SCENE_ASSETS = {
 const sceneStyle = (asset: string) => ({ "--scene-art": `url("${asset}")` }) as CSSProperties;
 
 type Stage = "welcome" | "ready" | "quiz" | "result";
+type ShareState = "idle" | "copied" | "shared" | "downloading";
 
 const subtractScores = (current: ScoreVector, option: QuizOption): ScoreVector => {
   const next = { ...current };
@@ -67,34 +71,45 @@ const subtractScores = (current: ScoreVector, option: QuizOption): ScoreVector =
   return next;
 };
 
+const wrapCanvasText = (context: CanvasRenderingContext2D, text: string, maxWidth: number): string[] => {
+  const words = text.split(" ");
+  const lines: string[] = [];
+  let line = "";
+  words.forEach((word) => {
+    const candidate = line ? `${line} ${word}` : word;
+    if (context.measureText(candidate).width > maxWidth && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = candidate;
+    }
+  });
+  if (line) lines.push(line);
+  return lines;
+};
+
+const loadImage = (src: string) => new Promise<HTMLImageElement>((resolve, reject) => {
+  const image = new Image();
+  image.onload = () => resolve(image);
+  image.onerror = reject;
+  image.src = src;
+});
+
 export default function Home() {
   const [stage, setStage] = useState<Stage>("welcome");
   const [questionIndex, setQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<QuizOption[]>([]);
   const [scores, setScores] = useState<ScoreVector>(zeroScores);
-  const [subject, setSubject] = useState<SubjectGroup>("unsure");
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [catalogQuery, setCatalogQuery] = useState("");
-  const [catalogGroup, setCatalogGroup] = useState<CatalogGroupId | "all">("all");
+  const [shareState, setShareState] = useState<ShareState>("idle");
 
   const currentQuestion = questions[questionIndex];
-  const rankedPositions = useMemo(() => rankPositions(scores, subject), [scores, subject]);
-  const primaryPosition = rankedPositions[0];
-  const comparisonPosition = rankedPositions.find((position) => position.id === primaryPosition?.compareWith) ?? rankedPositions[1] ?? primaryPosition;
-  const selectedSubject = subjectGroups.find((group) => group.id === subject) ?? subjectGroups.at(-1)!;
+  const rankedProfiles = useMemo(() => rankWorkProfiles(scores), [scores]);
+  const primaryProfile = rankedProfiles[0];
   const topDimensions = useMemo(
     () => (Object.entries(scores) as Array<[keyof ScoreVector, number]>).sort((left, right) => right[1] - left[1]).slice(0, 3),
     [scores],
   );
-  const catalogRoles = useMemo(() => {
-    const normalizedQuery = catalogQuery.trim().toLocaleLowerCase("th-TH");
-    return scopedAcademicRoles.filter((role) => {
-      const matchesGroup = catalogGroup === "all" || role.groupId === catalogGroup;
-      const matchesQuery = !normalizedQuery || role.title.toLocaleLowerCase("th-TH").includes(normalizedQuery);
-      return matchesGroup && matchesQuery;
-    });
-  }, [catalogGroup, catalogQuery]);
   const progress = stage === "result" ? 100 : (questionIndex / questions.length) * 100;
 
   const startQuiz = () => {
@@ -105,7 +120,6 @@ export default function Home() {
   const chooseAnswer = (option: QuizOption) => {
     if (selectedId) return;
     setSelectedId(option.id);
-
     window.setTimeout(() => {
       setAnswers((current) => [...current, option]);
       setScores((current) => {
@@ -115,13 +129,10 @@ export default function Home() {
         });
         return next;
       });
-      if (questionIndex === questions.length - 1) {
-        setStage("result");
-      } else {
-        setQuestionIndex((current) => current + 1);
-      }
+      if (questionIndex === questions.length - 1) setStage("result");
+      else setQuestionIndex((current) => current + 1);
       setSelectedId(null);
-    }, 300);
+    }, 260);
   };
 
   const goBack = () => {
@@ -141,56 +152,175 @@ export default function Home() {
     setQuestionIndex(0);
     setAnswers([]);
     setScores(zeroScores());
-    setSubject("unsure");
     setSelectedId(null);
-    setCopied(false);
+    setShareState("idle");
   };
 
-  const copySummary = async () => {
-    if (!primaryPosition) return;
-    const summary = `เข็มทิศราชการของฉัน: ${primaryPosition.title}\nงานที่น่าลองสำรวจ: ${primaryPosition.summary}\nผลลัพธ์นี้เป็นแนวทางสำรวจงาน ไม่ใช่การรับรองคุณสมบัติสมัครงาน`;
+  const shareCopy = (profile: WorkProfile) => `ฉันได้ “${profile.title}” จากแบบทดสอบสายไหนเหมาะกับคุณ\n${profile.nickname}\nมาเล่นด้วยกัน: ${PLAY_URL}`;
+
+  const createShareCard = async (profile: WorkProfile): Promise<Blob> => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 1080;
+    canvas.height = 1350;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("ไม่สามารถสร้างการ์ดได้");
+
+    context.fillStyle = "#fffaf1";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = profile.accent;
+    context.globalAlpha = 0.1;
+    context.beginPath();
+    context.arc(940, 130, 260, 0, Math.PI * 2);
+    context.fill();
+    context.beginPath();
+    context.arc(100, 1230, 320, 0, Math.PI * 2);
+    context.fill();
+    context.globalAlpha = 1;
+
+    context.strokeStyle = "#d3c5ac";
+    context.lineWidth = 4;
+    context.setLineDash([12, 12]);
+    context.beginPath();
+    context.moveTo(92, 172);
+    context.bezierCurveTo(330, 95, 508, 245, 695, 180);
+    context.bezierCurveTo(855, 125, 900, 286, 1010, 240);
+    context.stroke();
+    context.setLineDash([]);
+
+    context.fillStyle = "#567065";
+    context.font = "600 32px Mali, sans-serif";
+    context.fillText("เข็มทิศข้าราชการ", 88, 108);
+    context.fillStyle = "#283d37";
+    context.font = "700 60px Mali, sans-serif";
+    context.fillText("สายไหนเหมาะกับคุณ", 88, 285);
+    context.fillStyle = "#7f6b58";
+    context.font = "500 30px Mali, sans-serif";
+    context.fillText("ผลลัพธ์จากแบบทดสอบสนุก ๆ", 92, 335);
+
     try {
-      await navigator.clipboard.writeText(summary);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1800);
+      const avatar = await loadImage(ASSETS[profile.avatarKey]);
+      context.drawImage(avatar, 574, 300, 420, 560);
     } catch {
-      setCopied(false);
+      context.fillStyle = profile.accent;
+      context.globalAlpha = 0.2;
+      context.beginPath();
+      context.arc(790, 560, 210, 0, Math.PI * 2);
+      context.fill();
+      context.globalAlpha = 1;
+    }
+
+    context.fillStyle = profile.accent;
+    context.fillRect(88, 485, 54, 8);
+    context.fillStyle = "#283d37";
+    context.font = "700 72px Mali, sans-serif";
+    context.fillText(profile.title, 88, 590);
+    context.fillStyle = "#55625c";
+    context.font = "500 34px Mali, sans-serif";
+    const summaryLines = wrapCanvasText(context, profile.summary, 500);
+    summaryLines.slice(0, 4).forEach((line, index) => context.fillText(line, 90, 668 + index * 48));
+
+    context.fillStyle = "#f2e8d7";
+    context.fillRect(88, 900, 905, 210);
+    context.fillStyle = "#6b5949";
+    context.font = "600 28px Mali, sans-serif";
+    context.fillText("สายงานที่น่าลองสำรวจ", 126, 960);
+    context.fillStyle = "#2d423a";
+    context.font = "700 34px Mali, sans-serif";
+    profile.examples.forEach((example, index) => context.fillText(`• ${example}`, 126, 1016 + index * 42));
+
+    const qrData = await QRCode.toDataURL(PLAY_URL, { width: 180, margin: 1, color: { dark: "#2d423a", light: "#fffaf1" } });
+    const qr = await loadImage(qrData);
+    context.fillStyle = "#2d423a";
+    context.fillRect(0, 1174, canvas.width, 176);
+    context.drawImage(qr, 862, 1172, 164, 164);
+    context.fillStyle = "#fffaf1";
+    context.font = "700 34px Mali, sans-serif";
+    context.fillText("มาเล่นด้วยกัน", 90, 1244);
+    context.font = "500 27px Mali, sans-serif";
+    context.fillText("r2racha.github.io/compass", 90, 1292);
+
+    return new Promise((resolve, reject) => canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("ไม่สามารถสร้างไฟล์การ์ดได้"))), "image/png"));
+  };
+
+  const shareResult = async () => {
+    if (!primaryProfile) return;
+    setShareState("downloading");
+    const text = shareCopy(primaryProfile);
+    try {
+      const card = await createShareCard(primaryProfile);
+      const file = new File([card], "สายไหนเหมาะกับคุณ.png", { type: "image/png" });
+      if (navigator.share && (!navigator.canShare || navigator.canShare({ files: [file] }))) {
+        await navigator.share({ title: "สายไหนเหมาะกับคุณ", text, url: PLAY_URL, files: [file] });
+        setShareState("shared");
+      } else {
+        await navigator.clipboard.writeText(text);
+        setShareState("copied");
+      }
+    } catch {
+      try {
+        await navigator.clipboard.writeText(text);
+        setShareState("copied");
+      } catch {
+        setShareState("idle");
+      }
+    }
+    window.setTimeout(() => setShareState("idle"), 2400);
+  };
+
+  const downloadShareCard = async () => {
+    if (!primaryProfile) return;
+    setShareState("downloading");
+    try {
+      const card = await createShareCard(primaryProfile);
+      const href = URL.createObjectURL(card);
+      const link = document.createElement("a");
+      link.href = href;
+      link.download = "สายไหนเหมาะกับคุณ.png";
+      link.click();
+      URL.revokeObjectURL(href);
+      setShareState("shared");
+    } catch {
+      setShareState("idle");
+    }
+    window.setTimeout(() => setShareState("idle"), 1800);
+  };
+
+  const copyPlayLink = async () => {
+    try {
+      await navigator.clipboard.writeText(PLAY_URL);
+      setShareState("copied");
+      window.setTimeout(() => setShareState("idle"), 1800);
+    } catch {
+      setShareState("idle");
     }
   };
 
   return (
-    <div className="journey-shell">
+    <div className="journey-shell playful-quiz-shell">
       <header className="site-header">
         <button className="brand-lockup" onClick={restart} aria-label="กลับสู่หน้าแรก">
           <span className="brand-mark"><img src={ASSETS.logo} alt="" /></span>
-          <span className="brand-wordmark">
-            <strong>เข็มทิศข้าราชการ ก.พ.</strong>
-            <small>ค้นหาตำแหน่งที่น่าลองในแบบของคุณ</small>
-          </span>
+          <span className="brand-wordmark"><strong>เข็มทิศข้าราชการ</strong><small>สายไหนเหมาะกับคุณ?</small></span>
         </button>
-        <div className="header-note"><PenLine size={16} strokeWidth={1.8} /><span>21 คำถามแบบสถานการณ์</span></div>
+        <div className="header-note"><PenLine size={16} strokeWidth={1.8} /><span>10 คำถามชวนสำรวจตัวเอง</span></div>
       </header>
 
       <main>
         <AnimatePresence mode="wait">
           {stage === "welcome" && (
             <motion.section className="hero-scene" key="welcome" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.34, ease: [0.23, 1, 0.32, 1] }}>
-              <div className="hero-painting" aria-hidden="true" style={sceneStyle(SCENE_ASSETS.hero)} />
+              <div className="hero-painting" style={sceneStyle(SCENE_ASSETS.hero)} aria-hidden="true" />
               <span className="notebook-seam" aria-hidden="true" />
-              <div className="hero-route-system" aria-hidden="true">
-                <svg viewBox="0 0 1200 650" preserveAspectRatio="none"><path d="M 10 566 C 165 596, 260 570, 350 510 S 486 412, 623 428 S 782 384, 773 286 S 948 179, 1185 260" /></svg>
-                <span className="route-marker route-marker-start">01</span><span className="route-marker route-marker-middle">02</span><span className="route-marker route-marker-end"><Compass size={15} /></span>
-                <span className="route-note route-note-start">เริ่มจากวิธีทำงานของคุณ</span><span className="route-note route-note-end">ตำแหน่งที่น่าลอง</span>
-              </div>
-              <div className="hero-washi hero-washi-left" aria-hidden="true">สมุดเทียบตำแหน่ง</div><div className="hero-washi hero-washi-right" aria-hidden="true">ระดับปฏิบัติการ</div>
+              <div className="hero-route-system" aria-hidden="true"><svg viewBox="0 0 1200 650" preserveAspectRatio="none"><path d="M 10 566 C 165 596, 260 570, 350 510 S 486 412, 623 428 S 782 384, 773 286 S 948 179, 1185 260" /></svg><span className="route-marker route-marker-start">01</span><span className="route-marker route-marker-middle">02</span><span className="route-marker route-marker-end"><Compass size={15} /></span><span className="route-note route-note-start">วิธีทำงานของคุณ</span><span className="route-note route-note-end">ผลลัพธ์ของคุณ</span></div>
+              <div className="hero-washi hero-washi-left" aria-hidden="true">10 สถานการณ์</div><div className="hero-washi hero-washi-right" aria-hidden="true">แชร์ชวนเพื่อนได้</div>
               <div className="hero-copy">
-                <div className="eyebrow"><Sparkles size={15} /> สำหรับผู้สนใจตำแหน่งประเภทวิชาการ</div>
-                <h1>ตำแหน่งไหน<br /><em>เหมาะกับวิธีทำงานของคุณ?</em></h1>
-                <p className="hero-description">สำรวจตำแหน่งราชการระดับปฏิบัติการจากสถานการณ์ทำงานจริง แล้วเปรียบเทียบทางเลือกที่คนมักลังเลระหว่างกันอย่างเป็นรูปธรรม</p>
-                <Button className="journey-button" onClick={() => setStage("ready")}>เปิดแผนที่ตำแหน่ง <ArrowRight size={19} /></Button>
-                <p className="reassurance"><HeartHandshake size={16} /> ใช้เพื่อสำรวจความถนัด ไม่ใช่การรับรองคุณสมบัติสมัครงาน</p>
+                <div className="eyebrow"><Sparkles size={15} /> แบบทดสอบชวนสำรวจตัวเอง</div>
+                <h1>สายไหน<br /><em>เหมาะกับคุณ?</em></h1>
+                <p className="hero-description">เลือกคำตอบจากสถานการณ์ทำงานสั้น ๆ แล้วดูว่าคุณน่าจะมีพลังกับงานแบบไหนในโลกข้าราชการ</p>
+                <Button className="journey-button" onClick={() => setStage("ready")}>เริ่มค้นหาสายของคุณ <ArrowRight size={19} /></Button>
+                <p className="reassurance"><HeartHandshake size={16} /> เล่นสนุกเพื่อสำรวจตัวเอง ไม่ใช่การประเมินผลหรือรับรองสิทธิสมัคร</p>
               </div>
-              <div className="hero-guide"><div className="speech-bubble"><small>ผู้พาเดินทาง</small>เราจะค่อย ๆ ดูว่า<br />งานแบบไหนเหมาะกับคุณ</div><img src={ASSETS.greeting} alt="อวตารข้าราชการทักทาย" /></div>
+              <div className="hero-guide"><div className="speech-bubble"><small>ผู้พาเดินทาง</small>ลองเลือกจากสิ่งที่<br />เป็นตัวคุณจริง ๆ นะ</div><img src={ASSETS.greeting} alt="อวตารข้าราชการทักทาย" /></div>
               <div className="route-start"><span />เริ่มออกเดิน</div>
             </motion.section>
           )}
@@ -201,88 +331,49 @@ export default function Home() {
               <div className="ready-guide"><img src={ASSETS.welcome} alt="อวตารเชิญชวนเริ่มแบบทดสอบ" /></div>
               <div className="ready-note tape-note">
                 <div className="eyebrow"><MapPin size={15} /> ก่อนออกเดิน</div>
-                <h2>เลือกกลุ่มสาขาวุฒิ<br />เพื่อกรองตำแหน่งที่ตรงทาง</h2>
-                <p>ถ้าเลือกสาขา ระบบจะแสดงเฉพาะตำแหน่งที่กลุ่มวุฒิมีความสัมพันธ์ และค่อยเรียงตามวิธีทำงานของคุณ เพื่อไม่แนะนำงานข้ามสายโดยไม่มีเหตุผล</p>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <button className="catalog-trigger"><BookOpen size={17} /><span>ดูสารบัญสายงาน ก.พ.</span><b>{scopedAcademicRoles.length} สายงาน</b></button>
-                  </DialogTrigger>
-                  <DialogContent className="ocsc-catalog-dialog">
-                    <DialogHeader>
-                      <p className="catalog-source">สำนักงาน ก.พ. · มาตรฐานกำหนดตำแหน่งประเภทวิชาการ</p>
-                      <DialogTitle>สารบัญสายงานที่ใช้สำรวจต่อได้</DialogTitle>
-                      <DialogDescription>แสดง {scopedAcademicRoles.length} สายงานภายในขอบเขตเว็บไซต์ โดยตัดสายการศึกษาและงานส่งเสริมการปกครองท้องถิ่นตามขอบเขตที่เลือกไว้ ผลแบบทดสอบจะกรองตามกลุ่มสาขาวุฒิก่อนจัดอันดับ</DialogDescription>
-                    </DialogHeader>
-                    <div className="catalog-controls">
-                      <input value={catalogQuery} onChange={(event) => setCatalogQuery(event.target.value)} placeholder="ค้นหาชื่อสายงาน เช่น การเงิน, เกษตร, วิศวกรรม" aria-label="ค้นหาสายงาน" />
-                      <div className="catalog-filter-list" role="group" aria-label="กรองกลุ่มสายงาน">
-                        <button className={catalogGroup === "all" ? "is-active" : ""} onClick={() => setCatalogGroup("all")}>ทั้งหมด</button>
-                        {catalogGroups.map((group) => <button key={group.id} className={catalogGroup === group.id ? "is-active" : ""} onClick={() => setCatalogGroup(group.id)}>{group.shortLabel}</button>)}
-                      </div>
-                    </div>
-                    <div className="catalog-result-summary">พบ {catalogRoles.length} สายงาน</div>
-                    <div className="catalog-list" aria-live="polite">
-                      {catalogRoles.map((role) => <span key={role.code}>{role.title}</span>)}
-                    </div>
-                    <a className="catalog-reference" href="https://knowledge.ocsc.go.th/th/standard-position/all/" target="_blank" rel="noreferrer">ตรวจสอบมาตรฐานกำหนดตำแหน่งและคุณสมบัติจากสำนักงาน ก.พ. ↗</a>
-                  </DialogContent>
-                </Dialog>
-                <div className="subject-grid" role="group" aria-label="กลุ่มสาขาวิชา">
-                  {subjectGroups.map((group) => (
-                    <button key={group.id} className={`subject-option ${subject === group.id ? "is-selected" : ""}`} onClick={() => setSubject(group.id)}>
-                      {subject === group.id && <Check size={13} />}<span>{group.label}</span>
-                    </button>
-                  ))}
-                </div>
-                <div className="readiness-grid compact-grid"><div><b>21</b><span>คำถามสถานการณ์</span></div><div><b>28</b><span>ตำแหน่งแกนกลาง</span></div><div><b>3</b><span>ผลลัพธ์ที่น่าลอง</span></div></div>
-                <div className="ready-actions"><Button variant="ghost" className="quiet-button" onClick={() => setStage("welcome")}><ChevronLeft size={18} /> กลับ</Button><Button className="journey-button" onClick={startQuiz}>เริ่มสำรวจตัวเอง <ArrowRight size={19} /></Button></div>
+                <h2>ตอบจากสิ่งที่คุณ<br />อยากทำจริง ๆ</h2>
+                <p>ไม่มีคำตอบถูกผิด และไม่ต้องเลือกสาขาที่เรียนมา เราจะดูจากวิธีที่คุณคิด จัดการ และทำงานกับผู้คน เพื่อชวนสำรวจลักษณะงานที่น่าจะถูกจริตคุณ</p>
+                <div className="playful-profile-preview" aria-label="บุคลิกงานที่อาจพบ"><span>วางแผน</span><span>จัดการ</span><span>ตัวเลข</span><span>ดิจิทัล</span><span>ผู้คน</span></div>
+                <div className="readiness-grid compact-grid"><div><b>10</b><span>คำถามสถานการณ์</span></div><div><b>5</b><span>บุคลิกการทำงาน</span></div><div><b>3</b><span>สายงานน่าลอง</span></div></div>
+                <div className="ready-actions"><Button variant="ghost" className="quiet-button" onClick={() => setStage("welcome")}><ChevronLeft size={18} /> กลับ</Button><Button className="journey-button" onClick={startQuiz}>เริ่มตอบคำถาม <ArrowRight size={19} /></Button></div>
               </div>
             </motion.section>
           )}
 
           {stage === "quiz" && currentQuestion && (
             <motion.section className="quiz-scene" key={`question-${currentQuestion.id}`} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -18 }} transition={{ duration: 0.28, ease: [0.23, 1, 0.32, 1] }}>
-              <div className="quiz-background" aria-hidden="true" style={sceneStyle(SCENE_ASSETS.question)} />
+              <div className="quiz-background" style={sceneStyle(SCENE_ASSETS.question)} aria-hidden="true" />
               <div className="quiz-topbar"><Button variant="ghost" className="quiet-button compact" onClick={goBack}><ChevronLeft size={18} /> ย้อนกลับ</Button><div className="progress-cluster"><div className="progress-copy"><span>การเดินทาง</span><b>{questionIndex + 1} / {questions.length}</b></div><div className="pencil-progress" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${progress}%` }} /></div></div></div>
-              <div className="question-layout">
-                <aside className="question-guide"><img src={questionIndex % 2 === 0 ? ASSETS.pointing : ASSETS.explain} alt="อวตารกำลังแนะนำคำถาม" /><p>ลองตอบจากงานที่<br />อยากทำจริงนะครับ</p></aside>
-                <article className="question-paper"><div className="paper-header"><span>{currentQuestion.chapter}</span><span>{currentQuestion.scene}</span></div><div className="question-icon"><Compass size={25} /></div><h2>{currentQuestion.question}</h2><p className="question-helper">{currentQuestion.helper}</p><div className="answer-list">{currentQuestion.options.map((option, index) => <button key={option.id} className={`answer-card ${selectedId === option.id ? "is-selected" : ""}`} onClick={() => chooseAnswer(option)} disabled={Boolean(selectedId)}><span className="answer-number">0{index + 1}</span><span className="answer-copy"><b>{option.label}</b><small>{option.detail}</small></span><span className="answer-arrow"><ArrowRight size={18} /></span></button>)}</div></article>
-              </div>
+              <div className="question-layout"><aside className="question-guide"><img src={questionIndex % 2 === 0 ? ASSETS.pointing : ASSETS.explain} alt="อวตารกำลังแนะนำคำถาม" /><p>ลองตอบจากสิ่งที่<br />อยากทำจริงนะ</p></aside><article className="question-paper"><div className="paper-header"><span>{currentQuestion.chapter}</span><span>{currentQuestion.scene}</span></div><div className="question-icon"><Compass size={25} /></div><h2>{currentQuestion.question}</h2><p className="question-helper">{currentQuestion.helper}</p><div className="answer-list">{currentQuestion.options.map((option, index) => <button key={option.id} className={`answer-card ${selectedId === option.id ? "is-selected" : ""}`} onClick={() => chooseAnswer(option)} disabled={Boolean(selectedId)}><span className="answer-number">0{index + 1}</span><span className="answer-copy"><b>{option.label}</b><small>{option.detail}</small></span><span className="answer-arrow"><ArrowRight size={18} /></span></button>)}</div></article></div>
               <div className="quiz-route-label"><span /> เลือกทางที่รู้สึกเป็นธรรมชาติ</div>
             </motion.section>
           )}
 
-          {stage === "result" && primaryPosition && comparisonPosition && (
-            <motion.section className="result-scene position-result" key="result" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.38, ease: [0.23, 1, 0.32, 1] }}>
-              <div className="result-landscape" aria-hidden="true" style={sceneStyle(SCENE_ASSETS.result)} />
-              <div className="result-header"><div className="eyebrow"><Sparkles size={15} /> ผลคัดกรองตามกลุ่มสาขาวุฒิ</div><h2>เห็นร่องรอยของคุณ<br /><em>บนแผนที่ตำแหน่ง</em></h2></div>
-              <div className="result-grid">
-                <article className="result-card position-card"><div className="result-tag"><Compass size={17} /> อันดับ 1 จากคำตอบที่คุณเลือก</div><p className="archetype">{primaryPosition.family}</p><h3>{primaryPosition.title}</h3><p className="profile-subtitle">{primaryPosition.summary}</p><div className="trait-row"><span>{selectedSubject.shortLabel}</span><span>ความสอดคล้อง {primaryPosition.match}%</span></div>{subject !== "unsure" && <div className="qualification-guard"><GraduationCap size={17} /><p><b>ผ่านตัวกรองกลุ่มวุฒิ: {selectedSubject.shortLabel}</b><span>{primaryPosition.professionalRequirement ?? "โปรดเทียบชื่อปริญญา สาขา และทางกับประกาศรับสมัครก่อนสมัครจริง"}</span></p></div>}<div className="reflection-card"><PenLine size={19} /><p>{primaryPosition.difference}</p></div></article>
-                <aside className="result-side-note tape-note"><h4>คุณน่าจะมีพลัง<br />กับงานแบบนี้</h4><ul>{topDimensions.map(([dimension]) => <li key={dimension}><Check size={16} />{dimensionLabels[dimension]}</li>)}</ul><p className="side-note-foot">สาขาที่เลือกช่วยเรียงความเกี่ยวข้องของตำแหน่งเท่านั้น ไม่ได้ยืนยันคุณสมบัติในการสมัคร</p></aside>
+          {stage === "result" && primaryProfile && (
+            <motion.section className="result-scene playful-result" key="result" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.38, ease: [0.23, 1, 0.32, 1] }}>
+              <div className="result-landscape" style={sceneStyle(SCENE_ASSETS.result)} aria-hidden="true" />
+              <div className="result-header"><div className="eyebrow"><Sparkles size={15} /> ผลลัพธ์จากวิธีที่คุณเลือก</div><h2>คุณน่าจะเป็น<br /><em>{primaryProfile.title}</em></h2></div>
+              <div className="result-grid playful-result-grid">
+                <article className="result-card archetype-card" style={{ "--profile-accent": primaryProfile.accent } as React.CSSProperties}>
+                  <div className="result-tag"><Compass size={17} /> โปรไฟล์การทำงานของคุณ</div>
+                  <div className="archetype-top"><div><p className="archetype">{primaryProfile.nickname}</p><h3>{primaryProfile.title}</h3><p className="profile-subtitle">{primaryProfile.summary}</p></div><img className="archetype-avatar" src={ASSETS[primaryProfile.avatarKey]} alt={`อวตาร${primaryProfile.title}`} /></div>
+                  <div className="reflection-card"><PenLine size={19} /><p>{primaryProfile.reflection}</p></div>
+                  <div className="example-role-list"><span>ตัวอย่างสายงานที่น่าลองสำรวจ</span><div>{primaryProfile.examples.map((example) => <b key={example}>{example}</b>)}</div></div>
+                </article>
+                <aside className="result-side-note tape-note"><h4>สิ่งที่คำตอบของคุณ<br />บอกเรา</h4><ul>{topDimensions.map(([dimension]) => <li key={dimension}><Check size={16} />{dimensionLabels[dimension]}</li>)}</ul><p className="side-note-foot">นี่เป็นคำชวนให้สำรวจตัวเอง ไม่ได้ชี้ขาดว่าคุณเหมาะหรือสมัครงานใดได้</p></aside>
               </div>
-              <section className="comparison-card"><div className="comparison-heading"><Scale size={20} /><span>ถ้าลังเลระหว่างสองตำแหน่ง</span></div><div className="comparison-pair"><article><p>ตำแหน่งที่คุณได้อันดับ 1</p><h4>{primaryPosition.title}</h4><span>{primaryPosition.difference}</span></article><div className="versus-mark">เทียบกับ</div><article><p>ตำแหน่งที่ใกล้เคียง</p><h4>{comparisonPosition.title}</h4><span>{comparisonPosition.difference}</span></article></div></section>
-              <section className="all-paths position-ranking" aria-label="ตำแหน่งที่น่าลองสำรวจ"><div className="all-paths-heading"><span>3 ตำแหน่งที่น่าลองสำรวจต่อ</span><p>เรียงจากความสอดคล้องของรูปแบบงาน</p></div><div className="role-ranking-list">{rankedPositions.slice(0, 3).map((position, index) => <article className="role-rank" key={position.id}><span className="path-order">0{index + 1}</span><div><b>{position.title}</b><small>{position.family}</small></div><strong>{position.match}%</strong></article>)}</div></section>
-              <div className="result-footer"><div className="footer-guide"><img src={ASSETS.celebrate} alt="อวตารร่วมแสดงความยินดี" /><p>ใช้ผลนี้เป็นจุดตั้งต้น<br />แล้วค่อยไปอ่านประกาศจริงครับ</p></div><div className="result-actions"><Button variant="ghost" className="quiet-button" onClick={restart}><RotateCcw size={18} /> ลองตอบอีกครั้ง</Button><Button className="journey-button" onClick={copySummary}>{copied ? <Check size={18} /> : <Share2 size={18} />}{copied ? "คัดลอกแล้ว" : "คัดลอกผลลัพธ์"}</Button></div></div>
+              <section className="all-paths playful-ranking" aria-label="บุคลิกงานที่ใกล้เคียง"><div className="all-paths-heading"><span>อีก 2 บทบาทที่มีแววใกล้เคียง</span><p>เก็บไว้เป็นไอเดียสำหรับลองสำรวจต่อ</p></div><div className="profile-ranking-list">{rankedProfiles.slice(1, 3).map((profile, index) => <article className="profile-rank" key={profile.id}><img src={ASSETS[profile.avatarKey]} alt="" /><span className="path-order">0{index + 2}</span><div><b>{profile.title}</b><small>{profile.nickname}</small></div><strong>{profile.match}%</strong></article>)}</div></section>
+              <section className="share-card-section" aria-label="แชร์ผลลัพธ์"><div><p className="share-kicker">ชวนเพื่อนมาเล่นด้วยกัน</p><h3>แชร์การ์ดของคุณ<br />พร้อมลิงก์กลับมาเล่นได้เลย</h3><p>ปุ่มแชร์จะส่งรูปการ์ดพร้อมลิงก์เว็บไซต์ และในการ์ดมี QR ให้สแกนกลับมาเล่นได้เสมอ</p></div><div className="share-actions"><Button className="journey-button" onClick={shareResult} disabled={shareState === "downloading"}><Share2 size={18} />{shareState === "downloading" ? "กำลังทำการ์ด..." : shareState === "shared" ? "แชร์แล้ว" : shareState === "copied" ? "คัดลอกลิงก์แล้ว" : "แชร์ผลของฉัน"}</Button><Button variant="outline" className="share-outline-button" onClick={downloadShareCard} disabled={shareState === "downloading"}><Download size={17} /> ดาวน์โหลดการ์ด</Button><button className="copy-link-button" onClick={copyPlayLink}><Copy size={15} /> คัดลอกลิงก์เล่น</button></div></section>
+              <div className="result-footer"><div className="footer-guide"><img src={ASSETS.celebrate} alt="อวตารร่วมแสดงความยินดี" /><p>เก็บผลนี้ไว้เป็น<br />ไอเดียสนุก ๆ นะ</p></div><Button variant="ghost" className="quiet-button" onClick={restart}><RotateCcw size={18} /> ลองตอบอีกครั้ง</Button></div>
               <div className="result-route-system" aria-hidden="true"><span>01</span><i /><span><Compass size={13} /></span><i /><span>✓</span></div>
-              <p className="disclaimer"><Info size={12} /> เมื่อเลือกสาขาวุฒิ ผลลัพธ์จะกรองเฉพาะตำแหน่งที่กลุ่มสาขามีความสัมพันธ์ก่อนเรียงตามคำตอบ แต่ยังไม่ใช่การรับรองสิทธิสมัคร โปรดตรวจชื่อปริญญา สาขา และ “ทาง” ในประกาศรับสมัคร พร้อมค้นหาวุฒิของตนที่ <a href="https://accreditation.ocsc.go.th/accreditation" target="_blank" rel="noreferrer">OCSC e-Accreditation</a> เสมอ</p>
+              <p className="disclaimer"><Info size={12} /> แบบทดสอบนี้ออกแบบเพื่อสำรวจรูปแบบการทำงานที่คุณชอบ ผลลัพธ์และชื่อสายงานเป็นเพียงแนวคิดสำหรับลองค้นคว้าต่อ ไม่ใช่การประเมินสิทธิสมัครหรือคำแนะนำด้านอาชีพเฉพาะบุคคล</p>
             </motion.section>
           )}
         </AnimatePresence>
       </main>
+
       <footer className="site-footer">
-        {(stage === "welcome" || stage === "result") && (
-          <section className="contact-footer-card" aria-label="ช่องทางติดต่อ Road to Kharachakar">
-            <div className="contact-footer-copy">
-              <span className="contact-kicker">เพจ ทางมุ่งสู่ข้าราชการ Road to Kharachakar</span>
-              <h2>สนใจ “ชีทสรุปสอบราชการ<br />แบบเข้าใจง่าย”</h2>
-              <p className="contact-line-id">ติดต่อ LINE ID <strong>@891kiemx</strong></p>
-            </div>
-            <div className="contact-qr-wrap">
-              <img src={ASSETS.lineQr} alt="QR Code สำหรับเพิ่มเพื่อน LINE ID @891kiemx" />
-              <a className="qr-download" href={ASSETS.lineQr} download="QR-Line-891kiemx.png"><Download size={15} /> ดาวน์โหลด QR Code</a>
-            </div>
-          </section>
-        )}
+        {(stage === "welcome" || stage === "result") && <section className="contact-footer-card" aria-label="ช่องทางติดต่อ Road to Kharachakar"><div className="contact-footer-copy"><span className="contact-kicker">เพจ ทางมุ่งสู่ข้าราชการ Road to Kharachakar</span><h2>สนใจ “ชีทสรุปสอบราชการ<br />แบบเข้าใจง่าย”</h2><p className="contact-line-id">ติดต่อ LINE ID <strong>@891kiemx</strong></p></div><div className="contact-qr-wrap"><img src={ASSETS.lineQr} alt="QR Code สำหรับเพิ่มเพื่อน LINE ID @891kiemx" /><a className="qr-download" href={ASSETS.lineQr} download="QR-Line-891kiemx.png"><Download size={15} /> ดาวน์โหลด QR Code</a></div></section>}
         <div className="footer-signoff"><span className="footer-line" /><p>เข็มทิศราชการ <i>—</i> ค่อย ๆ รู้จักวิธีทำงานของตัวเอง แล้วค่อยเลือกทางที่อยากไป</p><span className="footer-line" /></div>
       </footer>
     </div>
