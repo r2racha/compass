@@ -320,7 +320,7 @@ export default function Home() {
               <div className="hero-painting" style={sceneStyle(SCENE_ASSETS.hero)} aria-hidden="true" />
               <span className="notebook-seam" aria-hidden="true" />
               <div className="hero-route-system" aria-hidden="true"><svg viewBox="0 0 1200 650" preserveAspectRatio="none"><path d="M 10 566 C 165 596, 260 570, 350 510 S 486 412, 623 428 S 782 384, 773 286 S 948 179, 1185 260" /></svg><span className="route-marker route-marker-start">01</span><span className="route-marker route-marker-middle">02</span><span className="route-marker route-marker-end"><Compass size={15} /></span><span className="route-note route-note-start">วิธีทำงานของคุณ</span><span className="route-note route-note-end">ผลลัพธ์ของคุณ</span></div>
-              <div className="hero-washi hero-washi-left" aria-hidden="true">16 สถานการณ์</div><div className="hero-washi hero-washi-right" aria-hidden="true">แชร์ชวนเพื่อนได้</div>
+              <div className="hero-washi hero-washi-right" aria-hidden="true">แชร์ชวนเพื่อนได้</div>
               <div className="hero-copy">
                 <div className="eyebrow"><Sparkles size={15} /> แบบทดสอบชวนสำรวจตัวเอง</div>
                 <h1>สายไหน<br /><em>เหมาะกับคุณ?</em></h1>
